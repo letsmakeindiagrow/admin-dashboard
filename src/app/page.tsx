@@ -11,7 +11,6 @@ import {
   Settings,
   Users,
 } from "lucide-react"
-import Link from "next/link"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -40,10 +39,10 @@ export default function Dashboard() {
       {/* Sidebar */}
       <div className="hidden w-64 flex-col bg-white shadow-sm md:flex">
         <div className="flex h-14 items-center border-b px-4">
-          <Link href="#" className="flex items-center gap-2 font-semibold">
+          <a href="#" className="flex items-center gap-2 font-semibold">
             <PieChart className="h-6 w-6 text-[#AACF45]" />
             <span className="text-xl font-bold">InvestAdmin</span>
-          </Link>
+          </a>
         </div>
         <div className="flex-1 overflow-auto py-2">
           <nav className="grid items-start px-2 text-sm font-medium">

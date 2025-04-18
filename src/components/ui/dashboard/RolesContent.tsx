@@ -2,8 +2,6 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import RoleTableRow from "./RoleTableRow"
 
@@ -67,7 +65,7 @@ export default function RolesContent() {
             </TableHeader>
             <TableBody>
               {roles.map((role, i) => (
-                <RoleTableRow key={i} role={role} index={i} />
+                <RoleTableRow key={i} role={role} />
               ))}
             </TableBody>
           </Table>

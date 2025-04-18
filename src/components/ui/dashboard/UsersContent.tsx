@@ -10,9 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { CheckCircle } from "lucide-react"
+import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import UserTableRow from "./UserTableRow"
 
 export default function UsersContent() {

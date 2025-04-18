@@ -12,10 +12,9 @@ interface Role {
 
 interface RoleTableRowProps {
   role: Role
-  index: number
 }
 
-export default function RoleTableRow({ role, index }: RoleTableRowProps) {
+export default function RoleTableRow({ role }: RoleTableRowProps) {
   return (
     <TableRow>
       <TableCell className="font-medium">{role.name}</TableCell>

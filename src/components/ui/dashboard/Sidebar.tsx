@@ -2,7 +2,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { PieChart, LayoutDashboard, DollarSign, Users, Settings, LogOut } from "lucide-react"
+import { LayoutDashboard, DollarSign, Users, Settings, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 

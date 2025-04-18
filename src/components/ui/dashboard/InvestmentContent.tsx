@@ -10,10 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
+import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import PlanTableRow from "./PlanTableRow"
 
 export default function InvestmentContent() {
