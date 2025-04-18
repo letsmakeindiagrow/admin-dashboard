@@ -117,7 +117,113 @@ export default function DashboardContent() {
             </Card>
           </TabsContent>
 
-          {/* Other tab contents would go here */}
+          <TabsContent value="fund-add" className="mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Fund Addition Requests</CardTitle>
+                <CardDescription>Manage fund addition requests here.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>User</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Plan</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {/* Placeholder Fund Add Data */}
+                    <TableRow>
+                      <TableCell className="font-medium">John Doe</TableCell>
+                      <TableCell>$5,000</TableCell>
+                      <TableCell>Growth Fund</TableCell>
+                      <TableCell><Badge className="bg-blue-100 text-blue-800">Pending</Badge></TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="outline" size="sm">Approve</Button>
+                        <Button variant="outline" size="sm" className="ml-2 text-red-500 hover:text-red-700">Reject</Button>
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">Jane Smith</TableCell>
+                      <TableCell>$10,000</TableCell>
+                      <TableCell>Balanced Portfolio</TableCell>
+                      <TableCell><Badge className="bg-green-100 text-green-800">Completed</Badge></TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="outline" size="sm">View</Button>
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">Alex Lee</TableCell>
+                      <TableCell>$2,500</TableCell>
+                      <TableCell>High Yield Bond</TableCell>
+                      <TableCell><Badge className="bg-yellow-100 text-yellow-800">Processing</Badge></TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="outline" size="sm">Approve</Button>
+                        <Button variant="outline" size="sm" className="ml-2 text-red-500 hover:text-red-700">Reject</Button>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="withdrawal" className="mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Withdrawal Requests</CardTitle>
+                <CardDescription>Manage fund withdrawal requests here.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>User</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Plan</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {/* Placeholder Withdrawal Data */}
+                    <TableRow>
+                      <TableCell className="font-medium">Priya Kumar</TableCell>
+                      <TableCell>$1,200</TableCell>
+                      <TableCell>Growth Fund</TableCell>
+                      <TableCell><Badge className="bg-blue-100 text-blue-800">Pending</Badge></TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="outline" size="sm">Approve</Button>
+                        <Button variant="outline" size="sm" className="ml-2 text-red-500 hover:text-red-700">Reject</Button>
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">Rahul Singh</TableCell>
+                      <TableCell>$3,000</TableCell>
+                      <TableCell>Balanced Portfolio</TableCell>
+                      <TableCell><Badge className="bg-green-100 text-green-800">Completed</Badge></TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="outline" size="sm">View</Button>
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">Emily Chen</TableCell>
+                      <TableCell>$800</TableCell>
+                      <TableCell>High Yield Bond</TableCell>
+                      <TableCell><Badge className="bg-yellow-100 text-yellow-800">Processing</Badge></TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="outline" size="sm">Approve</Button>
+                        <Button variant="outline" size="sm" className="ml-2 text-red-500 hover:text-red-700">Reject</Button>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
     </main>
