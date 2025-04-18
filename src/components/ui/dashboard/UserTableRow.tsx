@@ -38,7 +38,7 @@ export default function UserTableRow({ user }: UserTableRowProps) {
           {user.role}
         </Badge>
       </TableCell>
-      <TableCell>${user.investment.toLocaleString()}</TableCell>
+      <TableCell>₹{user.investment.toLocaleString()}</TableCell>
       <TableCell>{user.joined}</TableCell>
       <TableCell>
         <div className="flex items-center gap-2">

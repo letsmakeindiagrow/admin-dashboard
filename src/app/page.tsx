@@ -165,7 +165,7 @@ export default function Dashboard() {
                   <DollarSign className="h-4 w-4 text-[#AACF45]" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">$12,546,000</div>
+                  <div className="text-2xl font-bold">₹12,546,000</div>
                   <p className="text-xs text-muted-foreground">+15% from last month</p>
                 </CardContent>
               </Card>
@@ -316,7 +316,7 @@ export default function Dashboard() {
                                   </div>
                                 </div>
                               </TableCell>
-                              <TableCell>${(i * 1000).toLocaleString()}</TableCell>
+                              <TableCell>₹{(i * 1000).toLocaleString()}</TableCell>
                               <TableCell>
                                 <Badge variant="outline" className="bg-gray-100">
                                   {i % 2 === 0 ? "SIP Plan" : "Lumpsum"}
@@ -374,7 +374,7 @@ export default function Dashboard() {
                                   </div>
                                 </div>
                               </TableCell>
-                              <TableCell>${(i * 500).toLocaleString()}</TableCell>
+                              <TableCell>₹{(i * 500).toLocaleString()}</TableCell>
                               <TableCell>
                                 <Badge variant="outline" className="bg-gray-100">
                                   {i % 2 === 0 ? "SIP Plan" : "Lumpsum"}
@@ -499,7 +499,7 @@ export default function Dashboard() {
                         <TableCell className="font-medium">{plan.name}</TableCell>
                         <TableCell>{plan.roi}%</TableCell>
                         <TableCell>{(plan.roi / 12).toFixed(2)}%</TableCell>
-                        <TableCell>${plan.min.toLocaleString()}</TableCell>
+                        <TableCell>₹{plan.min.toLocaleString()}</TableCell>
                         <TableCell>{plan.term}</TableCell>
                         <TableCell>
                           <Badge
@@ -602,7 +602,7 @@ export default function Dashboard() {
                             {i === 1 ? "Admin" : i === 2 ? "Manager" : "Investor"}
                           </Badge>
                         </TableCell>
-                        <TableCell>${(i * 2500).toLocaleString()}</TableCell>
+                        <TableCell>₹{(i * 2500).toLocaleString()}</TableCell>
                         <TableCell>{`${i * 2} months ago`}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">

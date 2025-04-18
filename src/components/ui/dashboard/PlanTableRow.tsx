@@ -27,7 +27,7 @@ export default function PlanTableRow({ plan, index }: PlanTableRowProps) {
       <TableCell className="font-medium">{plan.name}</TableCell>
       <TableCell>{plan.roi}%</TableCell>
       <TableCell>{(plan.roi / 12).toFixed(2)}%</TableCell>
-      <TableCell>${plan.min.toLocaleString()}</TableCell>
+      <TableCell>₹{plan.min.toLocaleString()}</TableCell>
       <TableCell>{plan.term}</TableCell>
       <TableCell>
         <Badge

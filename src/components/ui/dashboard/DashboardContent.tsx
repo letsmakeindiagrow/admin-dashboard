@@ -14,7 +14,7 @@ export default function DashboardContent() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard 
           title="Assets Under Management" 
-          value="$12,546,000" 
+          value="₹12,546,000" 
           change="+15% from last month" 
           icon={DollarSign} 
           iconColor="text-[#AACF45]" 
@@ -138,7 +138,7 @@ export default function DashboardContent() {
                     {/* Placeholder Fund Add Data */}
                     <TableRow>
                       <TableCell className="font-medium">John Doe</TableCell>
-                      <TableCell>$5,000</TableCell>
+                      <TableCell>₹5,000</TableCell>
                       <TableCell>Growth Fund</TableCell>
                       <TableCell><Badge className="bg-blue-100 text-blue-800">Pending</Badge></TableCell>
                       <TableCell className="text-right">
@@ -148,7 +148,7 @@ export default function DashboardContent() {
                     </TableRow>
                     <TableRow>
                       <TableCell className="font-medium">Jane Smith</TableCell>
-                      <TableCell>$10,000</TableCell>
+                      <TableCell>₹10,000</TableCell>
                       <TableCell>Balanced Portfolio</TableCell>
                       <TableCell><Badge className="bg-green-100 text-green-800">Completed</Badge></TableCell>
                       <TableCell className="text-right">
@@ -157,7 +157,7 @@ export default function DashboardContent() {
                     </TableRow>
                     <TableRow>
                       <TableCell className="font-medium">Alex Lee</TableCell>
-                      <TableCell>$2,500</TableCell>
+                      <TableCell>₹2,500</TableCell>
                       <TableCell>High Yield Bond</TableCell>
                       <TableCell><Badge className="bg-yellow-100 text-yellow-800">Processing</Badge></TableCell>
                       <TableCell className="text-right">
@@ -192,7 +192,7 @@ export default function DashboardContent() {
                     {/* Placeholder Withdrawal Data */}
                     <TableRow>
                       <TableCell className="font-medium">Priya Kumar</TableCell>
-                      <TableCell>$1,200</TableCell>
+                      <TableCell>₹1,200</TableCell>
                       <TableCell>Growth Fund</TableCell>
                       <TableCell><Badge className="bg-blue-100 text-blue-800">Pending</Badge></TableCell>
                       <TableCell className="text-right">
@@ -202,7 +202,7 @@ export default function DashboardContent() {
                     </TableRow>
                     <TableRow>
                       <TableCell className="font-medium">Rahul Singh</TableCell>
-                      <TableCell>$3,000</TableCell>
+                      <TableCell>₹3,000</TableCell>
                       <TableCell>Balanced Portfolio</TableCell>
                       <TableCell><Badge className="bg-green-100 text-green-800">Completed</Badge></TableCell>
                       <TableCell className="text-right">
@@ -211,7 +211,7 @@ export default function DashboardContent() {
                     </TableRow>
                     <TableRow>
                       <TableCell className="font-medium">Emily Chen</TableCell>
-                      <TableCell>$800</TableCell>
+                      <TableCell>₹800</TableCell>
                       <TableCell>High Yield Bond</TableCell>
                       <TableCell><Badge className="bg-yellow-100 text-yellow-800">Processing</Badge></TableCell>
                       <TableCell className="text-right">
