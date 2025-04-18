@@ -1,9 +1,8 @@
-
 import DashboardLayout from "./components/ui/dashboard/DashboardLayout"
 
 function App() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-svh">
+    <div className="min-h-screen w-full">
       <DashboardLayout />
     </div>
   )

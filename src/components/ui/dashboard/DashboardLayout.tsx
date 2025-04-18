@@ -13,17 +13,17 @@ export default function DashboardLayout() {
   const [activeTab, setActiveTab] = useState("dashboard")
 
   return (
-    <div className="flex min-h-screen w-full bg-gray-50">
+    <>
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-      
-      <div className="flex flex-1 flex-col">
+      <div className="ml-64 h-screen flex flex-col bg-gray-50">
         <Header activeTab={activeTab} />
-        
-        {activeTab === "dashboard" && <DashboardContent />}
-        {activeTab === "investment" && <InvestmentContent />}
-        {activeTab === "users" && <UsersContent />}
-        {activeTab === "roles" && <RolesContent />}
+        <div className="flex-1 overflow-auto">
+          {activeTab === "dashboard" && <DashboardContent />}
+          {activeTab === "investment" && <InvestmentContent />}
+          {activeTab === "users" && <UsersContent />}
+          {activeTab === "roles" && <RolesContent />}
+        </div>
       </div>
-    </div>
+    </>
   )
 }

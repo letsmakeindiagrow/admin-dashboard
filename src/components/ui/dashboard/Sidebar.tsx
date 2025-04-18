@@ -20,51 +20,53 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
   ]
 
   return (
-    <div className="hidden w-64 flex-col bg-white shadow-sm md:flex">
-      <div className="flex h-14 items-center border-b px-4">
+    <div className="fixed top-0 left-0 h-screen w-64 flex-col bg-white shadow-sm hidden md:flex">
+      {/* Logo */}
+      <div className="flex h-20 items-center border-b px-4 justify-center">
         <a href="#" className="flex items-center gap-2 font-semibold">
-          <PieChart className="h-6 w-6 text-[#AACF45]" />
-          <span className="text-xl font-bold">InvestAdmin</span>
+          <img src="/logo.png" alt="Logo" className="pl-3 h-50 w-auto" />
         </a>
       </div>
-      
-      {/* Rest of the component remains the same */}
-      <div className="flex-1 overflow-auto py-2">
-        <nav className="grid items-start px-2 text-sm font-medium">
+
+      {/* Main Nav */}
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <nav className="px-2 pt-4 pb-2 text-base font-semibold space-y-1 overflow-auto">
           {tabs.map((tab) => (
             <Button
               key={tab.id}
               variant={activeTab === tab.id ? "default" : "ghost"}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900",
-                activeTab === tab.id && "bg-[#AACF45] text-white hover:text-white"
+                "flex items-center gap-4 rounded-lg px-3 py-2 text-gray-600 transition-all hover:text-gray-900 text-lg justify-start",
+                activeTab === tab.id && "bg-[#AACF45] text-white hover:text-white shadow-md"
               )}
               onClick={() => setActiveTab(tab.id)}
             >
-              <tab.icon className="h-4 w-4" />
+              <tab.icon className="h-5 w-5" />
               {tab.label}
             </Button>
           ))}
-          
+
+          {/* Logout Button */}
           <Button
             variant="ghost"
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900"
+            className="flex items-center gap-4 rounded-lg px-3 py-2 text-gray-600 transition-all hover:text-gray-900 text-lg justify-start"
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-5 w-5" />
             Logout
           </Button>
         </nav>
-      </div>
-      
-      <div className="mt-auto p-4 border-t">
-        <div className="flex items-center gap-3">
-          <Avatar>
-            <AvatarImage src="/placeholder-user.jpg" alt="Admin" />
-            <AvatarFallback className="bg-[#08AFF1] text-white">AD</AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="text-sm font-medium">Admin User</p>
-            <p className="text-xs text-gray-500">admin@example.com</p>
+
+        {/* User Info pinned at bottom */}
+        <div className="mt-auto p-4 border-t">
+          <div className="flex items-center gap-3">
+            <Avatar>
+              <AvatarImage src="/placeholder-user.jpg" alt="Admin" />
+              <AvatarFallback className="bg-[#08AFF1] text-white">AD</AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="text-sm font-medium">Admin User</p>
+              <p className="text-xs text-gray-500">admin@example.com</p>
+            </div>
           </div>
         </div>
       </div>
