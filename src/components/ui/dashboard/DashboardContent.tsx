@@ -7,8 +7,73 @@ import StatsCard from "./StatsCard"
 import { DollarSign, Users, BarChart3, CreditCard } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { useState } from "react"
+import { ExternalLink } from "lucide-react"
+
+function DocumentViewer({ isOpen, onClose, userId }: { isOpen: boolean; onClose: () => void; userId: number }) {
+  if (!isOpen) return null
+
+  // Hardcoded AWS links for demo
+  const documents = {
+    panCard: "https://example-aws-link.com/pan-card.pdf",
+    aadharFront: "https://example-aws-link.com/aadhar-front.pdf",
+    aadharBack: "https://example-aws-link.com/aadhar-back.pdf"
+  }
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center z-[9999]">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl border border-gray-200">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">User Documents</h2>
+          <button 
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 text-2xl"
+          >
+            ×
+          </button>
+        </div>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <h3 className="font-medium">PAN Card</h3>
+            <Button
+              variant="outline"
+              className="w-full justify-between"
+              onClick={() => window.open(documents.panCard, "_blank")}
+            >
+              View PAN Card
+              <ExternalLink className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="space-y-2">
+            <h3 className="font-medium">Aadhar Card</h3>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant="outline"
+                className="w-full justify-between"
+                onClick={() => window.open(documents.aadharFront, "_blank")}
+              >
+                Front Side
+                <ExternalLink className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-between"
+                onClick={() => window.open(documents.aadharBack, "_blank")}
+              >
+                Back Side
+                <ExternalLink className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function DashboardContent() {
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null)
+
   return (
     <main className="flex-1 overflow-auto p-4 md:p-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -101,7 +166,11 @@ export default function DashboardContent() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => setSelectedUserId(i)}
+                            >
                               View
                             </Button>
                             <Button size="sm" className="bg-[#AACF45] hover:bg-[#9abe3a]">
@@ -226,6 +295,12 @@ export default function DashboardContent() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <DocumentViewer 
+        isOpen={selectedUserId !== null} 
+        onClose={() => setSelectedUserId(null)} 
+        userId={selectedUserId || 0} 
+      />
     </main>
   )
 }
