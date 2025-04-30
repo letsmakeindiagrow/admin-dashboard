@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useState } from "react"
 import { ExternalLink } from "lucide-react"
 
-function DocumentViewer({ isOpen, onClose, userId }: { isOpen: boolean; onClose: () => void; userId: number }) {
+function DocumentViewer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void; userId: number }) {
   if (!isOpen) return null
 
   // Hardcoded AWS links for demo

@@ -1,24 +1,21 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import DashboardLayout from "./components/ui/dashboard/DashboardLayout"
 import LoginPage from "./components/auth/LoginPage"
+import { AuthGuard } from "./components/auth/AuthGuard"
 
 function App() {
-  const isAuthenticated = document.cookie.includes("isAuthenticated=true")
-
   return (
     <Router>
       <Routes>
-        <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <LoginPage />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route
           path="/"
           element={
-            isAuthenticated ? (
+            <AuthGuard>
               <div className="min-h-screen w-full">
                 <DashboardLayout />
               </div>
-            ) : (
-              <Navigate to="/login" />
-            )
+            </AuthGuard>
           }
         />
       </Routes>
