@@ -12,9 +12,12 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import PlanTableRow from "./PlanTableRow"
+import { useState } from "react"
+import AddInvestmentPlan from "./AddInvestmentPlan"
 
 export default function InvestmentContent() {
-  const plans = [
+  const [showAddPlan, setShowAddPlan] = useState(false)
+  const [plans, setPlans] = useState([
     {
       name: "Growth Fund",
       roi: 12,
@@ -31,14 +34,30 @@ export default function InvestmentContent() {
       type: "Lumpsum",
       active: true,
     },
-    // More plans...
-  ]
+  ])
+
+  const handleAddPlan = (newPlan: any) => {
+    setPlans([...plans, {
+      name: newPlan.productName,
+      roi: parseFloat(newPlan.roiAAR),
+      min: parseFloat(newPlan.minInvestment),
+      term: parseFloat(newPlan.investmentTerm),
+      type: newPlan.productType,
+      active: newPlan.status,
+    }])
+    setShowAddPlan(false)
+  }
 
   return (
     <main className="flex-1 overflow-auto p-4 md:p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold">Investment Plans</h2>
-        <Button className="bg-[#AACF45] hover:bg-[#9abe3a]">Add New Plan</Button>
+        <Button 
+          className="bg-[#AACF45] hover:bg-[#9abe3a]"
+          onClick={() => setShowAddPlan(true)}
+        >
+          Add New Plan
+        </Button>
       </div>
 
       <Card>
@@ -88,6 +107,13 @@ export default function InvestmentContent() {
           </Table>
         </CardContent>
       </Card>
+
+      {showAddPlan && (
+        <AddInvestmentPlan
+          onClose={() => setShowAddPlan(false)}
+          onSubmit={handleAddPlan}
+        />
+      )}
     </main>
   )
 }
