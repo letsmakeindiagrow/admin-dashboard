@@ -1,61 +1,64 @@
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 
 interface AddInvestmentPlanProps {
-  onClose: () => void
-  onSubmit: (data: any) => void
+  onClose: () => void;
+  onSubmit: (data: any) => void;
 }
 
-export default function AddInvestmentPlan({ onClose, onSubmit }: AddInvestmentPlanProps) {
+export default function AddInvestmentPlan({
+  onClose,
+  onSubmit,
+}: AddInvestmentPlanProps) {
   const [formData, setFormData] = useState({
     productName: "",
     roiAAR: "",
     minInvestment: "",
     investmentTerm: "",
     productType: "SIP",
-    status: true
-  })
+    status: "ACTIVE",
+  });
 
   const calculateTotalGain = () => {
-    const investment = parseFloat(formData.minInvestment) || 0
-    const roi = parseFloat(formData.roiAAR) || 0
-    const term = parseFloat(formData.investmentTerm) || 0
-    return (investment * roi * term / 100).toFixed(2)
-  }
+    const investment = parseFloat(formData.minInvestment) || 0;
+    const roi = parseFloat(formData.roiAAR) || 0;
+    const term = parseFloat(formData.investmentTerm) || 0;
+    return ((investment * roi * term) / 100).toFixed(2);
+  };
 
   const calculateMaturityValue = () => {
-    const investment = parseFloat(formData.minInvestment) || 0
-    const totalGain = parseFloat(calculateTotalGain())
-    return (investment + totalGain).toFixed(2)
-  }
+    const investment = parseFloat(formData.minInvestment) || 0;
+    const totalGain = parseFloat(calculateTotalGain());
+    return (investment + totalGain).toFixed(2);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     const data = {
       ...formData,
       roiAMR: (parseFloat(formData.roiAAR) / 12).toFixed(2),
       totalGain: calculateTotalGain(),
-      maturityValue: calculateMaturityValue()
-    }
-    onSubmit(data)
-  }
+      maturityValue: calculateMaturityValue(),
+    };
+    onSubmit(data);
+  };
 
   return (
     <Dialog open onOpenChange={onClose}>
@@ -71,7 +74,9 @@ export default function AddInvestmentPlan({ onClose, onSubmit }: AddInvestmentPl
               <Input
                 id="productName"
                 value={formData.productName}
-                onChange={(e) => setFormData({ ...formData, productName: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, productName: e.target.value })
+                }
                 required
               />
             </div>
@@ -83,7 +88,9 @@ export default function AddInvestmentPlan({ onClose, onSubmit }: AddInvestmentPl
                 type="number"
                 step="0.01"
                 value={formData.roiAAR}
-                onChange={(e) => setFormData({ ...formData, roiAAR: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, roiAAR: e.target.value })
+                }
                 required
               />
             </div>
@@ -102,7 +109,9 @@ export default function AddInvestmentPlan({ onClose, onSubmit }: AddInvestmentPl
                 id="minInvestment"
                 type="number"
                 value={formData.minInvestment}
-                onChange={(e) => setFormData({ ...formData, minInvestment: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, minInvestment: e.target.value })
+                }
                 required
               />
             </div>
@@ -113,39 +122,37 @@ export default function AddInvestmentPlan({ onClose, onSubmit }: AddInvestmentPl
                 id="investmentTerm"
                 type="number"
                 value={formData.investmentTerm}
-                onChange={(e) => setFormData({ ...formData, investmentTerm: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, investmentTerm: e.target.value })
+                }
                 required
               />
             </div>
 
             <div className="space-y-2">
               <Label>Total Gain (₹)</Label>
-              <Input
-                value={calculateTotalGain()}
-                disabled
-              />
+              <Input value={calculateTotalGain()} disabled />
             </div>
 
             <div className="space-y-2">
               <Label>Maturity Value (₹)</Label>
-              <Input
-                value={calculateMaturityValue()}
-                disabled
-              />
+              <Input value={calculateMaturityValue()} disabled />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="productType">Product Type</Label>
               <Select
                 value={formData.productType}
-                onValueChange={(value: "SIP" | "Lumpsum") => setFormData({ ...formData, productType: value })}
+                onValueChange={(value: "SIP" | "LUMPSUM") =>
+                  setFormData({ ...formData, productType: value })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="SIP">SIP</SelectItem>
-                  <SelectItem value="Lumpsum">Lumpsum</SelectItem>
+                  <SelectItem value="LUMPSUM">LUMPSUM</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -154,10 +161,17 @@ export default function AddInvestmentPlan({ onClose, onSubmit }: AddInvestmentPl
               <Label>Status</Label>
               <div className="flex items-center space-x-2">
                 <Switch
-                  checked={formData.status}
-                  onCheckedChange={(checked) => setFormData({ ...formData, status: checked })}
+                  checked={formData.status === "ACTIVE"}
+                  onCheckedChange={(checked) =>
+                    setFormData({
+                      ...formData,
+                      status: checked ? "ACTIVE" : "DEACTIVATED",
+                    })
+                  }
                 />
-                <span className="text-sm">{formData.status ? "Active" : "Inactive"}</span>
+                <span className="text-sm">
+                  {formData.status ? "Active" : "Inactive"}
+                </span>
               </div>
             </div>
           </div>
@@ -173,5 +187,5 @@ export default function AddInvestmentPlan({ onClose, onSubmit }: AddInvestmentPl
         </form>
       </DialogContent>
     </Dialog>
-  )
-} 
+  );
+}
