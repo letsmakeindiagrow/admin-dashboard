@@ -1,6 +1,7 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
-import DashboardLayout from "./components/ui/dashboard/DashboardLayout"
-import LoginPage from "./components/auth/LoginPage"
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import DashboardLayout from "./components/ui/dashboard/DashboardLayout";
+import LoginPage from "./components/auth/LoginPage";
+import { AuthGuard } from "./components/auth/AuthGuard";
 
 function App() {
   return (
@@ -10,14 +11,16 @@ function App() {
         <Route
           path="/"
           element={
-            <div className="min-h-screen w-full">
-              <DashboardLayout />
-            </div>
+            <AuthGuard>
+              <div className="min-h-screen w-full">
+                <DashboardLayout />
+              </div>
+            </AuthGuard>
           }
         />
       </Routes>
     </Router>
-  )
+  );
 }
 
-export default App
+export default App;

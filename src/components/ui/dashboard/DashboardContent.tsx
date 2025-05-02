@@ -97,7 +97,9 @@ export default function DashboardContent() {
   const [pendingVerifications, setPendingVerifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [transactions, setTransactions] = useState<any[]>([]);
-  const [withdrawalTransactions, setWithdrawalTransactions] = useState<any[]>([]);
+  const [withdrawalTransactions, setWithdrawalTransactions] = useState<any[]>(
+    []
+  );
   const baseUrl = import.meta.env.VITE_BASE_URL;
 
   useEffect(() => {
@@ -115,7 +117,7 @@ export default function DashboardContent() {
         }
       );
       if (response.status === 200) {
-        console.log('Fetched transactions:', response.data.transactions);
+        console.log("Fetched transactions:", response.data.transactions);
         setTransactions(response.data.transactions || []);
       } else {
         console.error(
@@ -138,7 +140,10 @@ export default function DashboardContent() {
         }
       );
       if (response.status === 200) {
-        console.log('Fetched withdrawal transactions:', response.data.transactions);
+        console.log(
+          "Fetched withdrawal transactions:",
+          response.data.transactions
+        );
         setWithdrawalTransactions(response.data.transactions || []);
       } else {
         console.error(
@@ -153,12 +158,9 @@ export default function DashboardContent() {
 
   const fetchPendingVerifications = async () => {
     try {
-      const response = await axios.get(
-        `${baseUrl}/api/v1/admin/get-users`,
-        {
-          withCredentials: true,
-        }
-      );
+      const response = await axios.get(`${baseUrl}/api/v1/admin/get-users`, {
+        withCredentials: true,
+      });
       if (response.status === 200) {
         // Filter for pending verifications
         const pendingUsers = response.data.users.filter(
@@ -179,33 +181,37 @@ export default function DashboardContent() {
     }
   };
 
-  const handleApproveTransaction = async (transactionId: string, type: 'deposit' | 'withdrawal') => {
+  const handleApproveTransaction = async (
+    transactionId: string,
+    type: "deposit" | "withdrawal"
+  ) => {
     try {
       // Validate transactionId
-      if (!transactionId || typeof transactionId !== 'string') {
-        console.error('Invalid transaction ID:', transactionId);
+      if (!transactionId || typeof transactionId !== "string") {
+        console.error("Invalid transaction ID:", transactionId);
         return;
       }
 
-      console.log('Approving transaction:', { transactionId, type });
+      console.log("Approving transaction:", { transactionId, type });
 
-      const endpoint = type === 'deposit' 
-        ? `${baseUrl}/api/v1/admin/add-funds`
-        : `${baseUrl}/api/v1/admin/withdraw-funds`;
+      const endpoint =
+        type === "deposit"
+          ? `${baseUrl}/api/v1/admin/add-funds`
+          : `${baseUrl}/api/v1/admin/withdraw-funds`;
 
       const response = await axios.post(
         endpoint,
         {
           transactionsId: transactionId,
-          status: "approve"
+          status: "approved",
         },
         { withCredentials: true }
       );
-      
+
       if (response.status === 200) {
-        console.log('Transaction approved successfully:', transactionId);
+        console.log("Transaction approved successfully:", transactionId);
         // Refresh the transactions list
-        if (type === 'deposit') {
+        if (type === "deposit") {
           fetchTransactions();
         } else {
           fetchWithdrawalTransactions();
@@ -214,42 +220,46 @@ export default function DashboardContent() {
     } catch (error) {
       console.error("Error approving transaction:", error);
       if (axios.isAxiosError(error)) {
-        console.error('Error details:', {
+        console.error("Error details:", {
           status: error.response?.status,
           data: error.response?.data,
-          transactionId
+          transactionId,
         });
       }
     }
   };
 
-  const handleRejectTransaction = async (transactionId: string, type: 'deposit' | 'withdrawal') => {
+  const handleRejectTransaction = async (
+    transactionId: string,
+    type: "deposit" | "withdrawal"
+  ) => {
     try {
       // Validate transactionId
-      if (!transactionId || typeof transactionId !== 'string') {
-        console.error('Invalid transaction ID:', transactionId);
+      if (!transactionId || typeof transactionId !== "string") {
+        console.error("Invalid transaction ID:", transactionId);
         return;
       }
 
-      console.log('Rejecting transaction:', { transactionId, type });
+      console.log("Rejecting transaction:", { transactionId, type });
 
-      const endpoint = type === 'deposit' 
-        ? `${baseUrl}/api/v1/admin/add-funds`
-        : `${baseUrl}/api/v1/admin/withdraw-funds`;
+      const endpoint =
+        type === "deposit"
+          ? `${baseUrl}/api/v1/admin/add-funds`
+          : `${baseUrl}/api/v1/admin/withdraw-funds`;
 
       const response = await axios.post(
         endpoint,
         {
           transactionsId: transactionId,
-          status: "reject"
+          status: "reject",
         },
         { withCredentials: true }
       );
-      
+
       if (response.status === 200) {
-        console.log('Transaction rejected successfully:', transactionId);
+        console.log("Transaction rejected successfully:", transactionId);
         // Refresh the transactions list
-        if (type === 'deposit') {
+        if (type === "deposit") {
           fetchTransactions();
         } else {
           fetchWithdrawalTransactions();
@@ -258,10 +268,10 @@ export default function DashboardContent() {
     } catch (error) {
       console.error("Error rejecting transaction:", error);
       if (axios.isAxiosError(error)) {
-        console.error('Error details:', {
+        console.error("Error details:", {
           status: error.response?.status,
           data: error.response?.data,
-          transactionId
+          transactionId,
         });
       }
     }
@@ -371,9 +381,14 @@ export default function DashboardContent() {
                                 </AvatarFallback>
                               </Avatar>
                               <div>
-                                <p className="text-sm font-medium">{user.email}</p>
+                                <p className="text-sm font-medium">
+                                  {user.email}
+                                </p>
                                 <p className="text-xs text-gray-500">
-                                  Joined {new Date(user.createdAt).toLocaleDateString()}
+                                  Joined{" "}
+                                  {new Date(
+                                    user.createdAt
+                                  ).toLocaleDateString()}
                                 </p>
                               </div>
                             </div>
@@ -406,19 +421,45 @@ export default function DashboardContent() {
                                 onClick={async () => {
                                   try {
                                     const response = await axios.post(
-                                      `${baseUrl}/api/v1/admin/verify-user/${user.id}`,
-                                      {},
+                                      `${baseUrl}/api/v1/admin/verify-user/`,
+                                      { userId: user.id, status: "approve" },
                                       { withCredentials: true }
                                     );
                                     if (response.status === 200) {
                                       fetchPendingVerifications();
                                     }
                                   } catch (error) {
-                                    console.error("Error verifying user:", error);
+                                    console.error(
+                                      "Error verifying user:",
+                                      error
+                                    );
                                   }
                                 }}
                               >
                                 Approve
+                              </Button>
+                              <Button
+                                size="sm"
+                                className="bg-[#AACF45] hover:bg-[#9abe3a]"
+                                onClick={async () => {
+                                  try {
+                                    const response = await axios.post(
+                                      `${baseUrl}/api/v1/admin/verify-user/`,
+                                      { userId: user.id, status: "rejected" },
+                                      { withCredentials: true }
+                                    );
+                                    if (response.status === 200) {
+                                      fetchPendingVerifications();
+                                    }
+                                  } catch (error) {
+                                    console.error(
+                                      "Error verifying user:",
+                                      error
+                                    );
+                                  }
+                                }}
+                              >
+                                Reject
                               </Button>
                             </div>
                           </TableCell>
@@ -472,7 +513,12 @@ export default function DashboardContent() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleApproveTransaction(transaction.id, 'deposit')}
+                              onClick={() =>
+                                handleApproveTransaction(
+                                  transaction.id,
+                                  "deposit"
+                                )
+                              }
                             >
                               Approve
                             </Button>
@@ -480,7 +526,12 @@ export default function DashboardContent() {
                               variant="outline"
                               size="sm"
                               className="text-red-500 hover:text-red-700"
-                              onClick={() => handleRejectTransaction(transaction.id, 'deposit')}
+                              onClick={() =>
+                                handleRejectTransaction(
+                                  transaction.id,
+                                  "deposit"
+                                )
+                              }
                             >
                               Reject
                             </Button>
@@ -529,7 +580,12 @@ export default function DashboardContent() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleApproveTransaction(transaction.id, 'withdrawal')}
+                              onClick={() =>
+                                handleApproveTransaction(
+                                  transaction.id,
+                                  "withdrawal"
+                                )
+                              }
                             >
                               Approve
                             </Button>
@@ -537,7 +593,12 @@ export default function DashboardContent() {
                               variant="outline"
                               size="sm"
                               className="text-red-500 hover:text-red-700"
-                              onClick={() => handleRejectTransaction(transaction.id, 'withdrawal')}
+                              onClick={() =>
+                                handleRejectTransaction(
+                                  transaction.id,
+                                  "withdrawal"
+                                )
+                              }
                             >
                               Reject
                             </Button>
