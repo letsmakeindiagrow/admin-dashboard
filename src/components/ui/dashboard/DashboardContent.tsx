@@ -96,8 +96,13 @@ export default function DashboardContent() {
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   useEffect(() => {
     fetchTransactions();
+    fetchWithdrawalTransactions();
   }, []);
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [withdrawalTransactions, setWithdrawalTransactions] = useState<any[]>(
+    []
+  );
+
   const fetchTransactions = async () => {
     try {
       const baseUrl = import.meta.env.VITE_BASE_URL;
@@ -106,7 +111,7 @@ export default function DashboardContent() {
         return;
       }
       const response = await axios.get(
-        `${baseUrl}/api/v1/admin/get-transactions`,
+        `${baseUrl}/api/v1/admin/get-deposit-transactions`,
         {
           withCredentials: true,
         }
@@ -124,6 +129,33 @@ export default function DashboardContent() {
     } catch (error) {
       console.error("Error fetching transactions:", error);
       // Optionally: handle specific errors like 401 Unauthorized
+    }
+  };
+
+  const fetchWithdrawalTransactions = async () => {
+    try {
+      const baseUrl = import.meta.env.VITE_BASE_URL;
+      if (!baseUrl) {
+        console.error("API base URL is not defined in environment variables.");
+        return;
+      }
+      const response = await axios.get(
+        `${baseUrl}/api/v1/admin/get-withdrawal-transactions`,
+        {
+          withCredentials: true,
+        }
+      );
+      if (response.status === 200) {
+        setWithdrawalTransactions(response.data.transactions || []);
+        console.log(response.data.transactions);
+      } else {
+        console.error(
+          "Failed to fetch withdrawal transactions:",
+          response.status
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching withdrawal transactions:", error);
     }
   };
 
@@ -273,7 +305,7 @@ export default function DashboardContent() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>User ID</TableHead>
+                      <TableHead>User</TableHead>
                       <TableHead>Amount</TableHead>
                       <TableHead>Method</TableHead>
                       <TableHead>Reference Number</TableHead>
@@ -287,13 +319,29 @@ export default function DashboardContent() {
                     {transactions.map((transaction, i) => (
                       <TableRow key={i}>
                         <TableCell className="font-medium">
-                          {transaction.userId}
+                          {transaction.user.email}
                         </TableCell>
                         <TableCell>{transaction.amount}</TableCell>
                         <TableCell>{transaction.method}</TableCell>
                         <TableCell>{transaction.referenceNumber}</TableCell>
-                        <TableCell>{transaction.status}</TableCell>
-                        <TableCell>{transaction.remarks}</TableCell>
+                        <TableCell>
+                          <Badge className="bg-yellow-100 text-yellow-800">
+                            {transaction.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{transaction.remark}</TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="outline" size="sm">
+                            Approve
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="ml-2 text-red-500 hover:text-red-700"
+                          >
+                            Reject
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -314,76 +362,39 @@ export default function DashboardContent() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>User ID</TableHead>
+                      <TableHead>User</TableHead>
                       <TableHead>Amount</TableHead>
-                      <TableHead>Method</TableHead>
-                      <TableHead>Reference Number</TableHead>
-                      <TableHead>Plan</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {/* Placeholder Withdrawal Data */}
-                    <TableRow>
-                      <TableCell className="font-medium">Priya Kumar</TableCell>
-                      <TableCell>₹1,200</TableCell>
-                      <TableCell>Growth Fund</TableCell>
-                      <TableCell>
-                        <Badge className="bg-blue-100 text-blue-800">
-                          Pending
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="outline" size="sm">
-                          Approve
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="ml-2 text-red-500 hover:text-red-700"
-                        >
-                          Reject
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="font-medium">Rahul Singh</TableCell>
-                      <TableCell>₹3,000</TableCell>
-                      <TableCell>Balanced Portfolio</TableCell>
-                      <TableCell>
-                        <Badge className="bg-green-100 text-green-800">
-                          Completed
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="outline" size="sm">
-                          View
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="font-medium">Emily Chen</TableCell>
-                      <TableCell>₹800</TableCell>
-                      <TableCell>High Yield Bond</TableCell>
-                      <TableCell>
-                        <Badge className="bg-yellow-100 text-yellow-800">
-                          Processing
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="outline" size="sm">
-                          Approve
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="ml-2 text-red-500 hover:text-red-700"
-                        >
-                          Reject
-                        </Button>
-                      </TableCell>
-                    </TableRow>
+                    {/* @ts-ignore */}
+                    {withdrawalTransactions.map((transaction, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="font-medium">
+                          {transaction.user.email}
+                        </TableCell>
+                        <TableCell>{transaction.amount}</TableCell>
+                        <TableCell>
+                          <Badge className="bg-yellow-100 text-yellow-800">
+                            {transaction.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="outline" size="sm">
+                            Approve
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="ml-2 text-red-500 hover:text-red-700"
+                          >
+                            Reject
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
               </CardContent>
