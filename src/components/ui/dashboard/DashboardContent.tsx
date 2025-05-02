@@ -94,22 +94,20 @@ function DocumentViewer({
 
 export default function DashboardContent() {
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [pendingVerifications, setPendingVerifications] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [withdrawalTransactions, setWithdrawalTransactions] = useState<any[]>([]);
+  const baseUrl = import.meta.env.VITE_BASE_URL;
+
   useEffect(() => {
     fetchTransactions();
     fetchWithdrawalTransactions();
+    fetchPendingVerifications();
   }, []);
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [withdrawalTransactions, setWithdrawalTransactions] = useState<any[]>(
-    []
-  );
 
   const fetchTransactions = async () => {
     try {
-      const baseUrl = import.meta.env.VITE_BASE_URL;
-      if (!baseUrl) {
-        console.error("API base URL is not defined in environment variables.");
-        return;
-      }
       const response = await axios.get(
         `${baseUrl}/api/v1/admin/get-deposit-transactions`,
         {
@@ -117,8 +115,8 @@ export default function DashboardContent() {
         }
       );
       if (response.status === 200) {
+        console.log('Fetched transactions:', response.data.transactions);
         setTransactions(response.data.transactions || []);
-        console.log(response.data.transactions);
       } else {
         console.error(
           "Failed to fetch transactions:",
@@ -128,17 +126,11 @@ export default function DashboardContent() {
       }
     } catch (error) {
       console.error("Error fetching transactions:", error);
-      // Optionally: handle specific errors like 401 Unauthorized
     }
   };
 
   const fetchWithdrawalTransactions = async () => {
     try {
-      const baseUrl = import.meta.env.VITE_BASE_URL;
-      if (!baseUrl) {
-        console.error("API base URL is not defined in environment variables.");
-        return;
-      }
       const response = await axios.get(
         `${baseUrl}/api/v1/admin/get-withdrawal-transactions`,
         {
@@ -146,8 +138,8 @@ export default function DashboardContent() {
         }
       );
       if (response.status === 200) {
+        console.log('Fetched withdrawal transactions:', response.data.transactions);
         setWithdrawalTransactions(response.data.transactions || []);
-        console.log(response.data.transactions);
       } else {
         console.error(
           "Failed to fetch withdrawal transactions:",
@@ -156,6 +148,122 @@ export default function DashboardContent() {
       }
     } catch (error) {
       console.error("Error fetching withdrawal transactions:", error);
+    }
+  };
+
+  const fetchPendingVerifications = async () => {
+    try {
+      const response = await axios.get(
+        `${baseUrl}/api/v1/admin/get-users`,
+        {
+          withCredentials: true,
+        }
+      );
+      if (response.status === 200) {
+        // Filter for pending verifications
+        const pendingUsers = response.data.users.filter(
+          (user: any) => user.verificationState === "PENDING"
+        );
+        setPendingVerifications(pendingUsers);
+      } else {
+        console.error(
+          "Failed to fetch verifications:",
+          response.status,
+          response.data
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching verifications:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApproveTransaction = async (transactionId: string, type: 'deposit' | 'withdrawal') => {
+    try {
+      // Validate transactionId
+      if (!transactionId || typeof transactionId !== 'string') {
+        console.error('Invalid transaction ID:', transactionId);
+        return;
+      }
+
+      console.log('Approving transaction:', { transactionId, type });
+
+      const endpoint = type === 'deposit' 
+        ? `${baseUrl}/api/v1/admin/add-funds`
+        : `${baseUrl}/api/v1/admin/withdraw-funds`;
+
+      const response = await axios.post(
+        endpoint,
+        {
+          transactionsId: transactionId,
+          status: "approve"
+        },
+        { withCredentials: true }
+      );
+      
+      if (response.status === 200) {
+        console.log('Transaction approved successfully:', transactionId);
+        // Refresh the transactions list
+        if (type === 'deposit') {
+          fetchTransactions();
+        } else {
+          fetchWithdrawalTransactions();
+        }
+      }
+    } catch (error) {
+      console.error("Error approving transaction:", error);
+      if (axios.isAxiosError(error)) {
+        console.error('Error details:', {
+          status: error.response?.status,
+          data: error.response?.data,
+          transactionId
+        });
+      }
+    }
+  };
+
+  const handleRejectTransaction = async (transactionId: string, type: 'deposit' | 'withdrawal') => {
+    try {
+      // Validate transactionId
+      if (!transactionId || typeof transactionId !== 'string') {
+        console.error('Invalid transaction ID:', transactionId);
+        return;
+      }
+
+      console.log('Rejecting transaction:', { transactionId, type });
+
+      const endpoint = type === 'deposit' 
+        ? `${baseUrl}/api/v1/admin/add-funds`
+        : `${baseUrl}/api/v1/admin/withdraw-funds`;
+
+      const response = await axios.post(
+        endpoint,
+        {
+          transactionsId: transactionId,
+          status: "reject"
+        },
+        { withCredentials: true }
+      );
+      
+      if (response.status === 200) {
+        console.log('Transaction rejected successfully:', transactionId);
+        // Refresh the transactions list
+        if (type === 'deposit') {
+          fetchTransactions();
+        } else {
+          fetchWithdrawalTransactions();
+        }
+      }
+    } catch (error) {
+      console.error("Error rejecting transaction:", error);
+      if (axios.isAxiosError(error)) {
+        console.error('Error details:', {
+          status: error.response?.status,
+          data: error.response?.data,
+          transactionId
+        });
+      }
     }
   };
 
@@ -225,7 +333,7 @@ export default function DashboardContent() {
               <CardHeader>
                 <CardTitle>Pending Verification Requests</CardTitle>
                 <CardDescription>
-                  Manage user verification requests here.
+                  Review and verify user documents.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -240,53 +348,83 @@ export default function DashboardContent() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <TableRow key={i}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            <Avatar className="h-8 w-8">
-                              <AvatarFallback className="bg-[#08AFF1] text-white">{`U${i}`}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="text-sm font-medium">User {i}</p>
-                              <p className="text-xs text-gray-500">
-                                user{i}@example.com
-                              </p>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>{`${i} day${
-                          i > 1 ? "s" : ""
-                        } ago`}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="bg-gray-100">
-                            ID + Address
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className="bg-amber-100 text-amber-800">
-                            Pending
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setSelectedUserId(i)}
-                            >
-                              View
-                            </Button>
-                            <Button
-                              size="sm"
-                              className="bg-[#AACF45] hover:bg-[#9abe3a]"
-                            >
-                              Approve
-                            </Button>
-                          </div>
+                    {loading ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-4">
+                          Loading verifications...
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ) : pendingVerifications.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-4">
+                          No pending verifications
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      pendingVerifications.map((user) => (
+                        <TableRow key={user.id}>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-8 w-8">
+                                <AvatarFallback className="bg-[#08AFF1] text-white">
+                                  {user.email.charAt(0).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="text-sm font-medium">{user.email}</p>
+                                <p className="text-xs text-gray-500">
+                                  Joined {new Date(user.createdAt).toLocaleDateString()}
+                                </p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {new Date(user.createdAt).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="bg-gray-100">
+                              ID + Address
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className="bg-amber-100 text-amber-800">
+                              Pending
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedUserId(user.id)}
+                              >
+                                View
+                              </Button>
+                              <Button
+                                size="sm"
+                                className="bg-[#AACF45] hover:bg-[#9abe3a]"
+                                onClick={async () => {
+                                  try {
+                                    const response = await axios.post(
+                                      `${baseUrl}/api/v1/admin/verify-user/${user.id}`,
+                                      {},
+                                      { withCredentials: true }
+                                    );
+                                    if (response.status === 200) {
+                                      fetchPendingVerifications();
+                                    }
+                                  } catch (error) {
+                                    console.error("Error verifying user:", error);
+                                  }
+                                }}
+                              >
+                                Approve
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -315,9 +453,8 @@ export default function DashboardContent() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {/* @ts-ignore */}
-                    {transactions.map((transaction, i) => (
-                      <TableRow key={i}>
+                    {transactions.map((transaction) => (
+                      <TableRow key={transaction.id}>
                         <TableCell className="font-medium">
                           {transaction.user.email}
                         </TableCell>
@@ -331,16 +468,23 @@ export default function DashboardContent() {
                         </TableCell>
                         <TableCell>{transaction.remark}</TableCell>
                         <TableCell className="text-right">
-                          <Button variant="outline" size="sm">
-                            Approve
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="ml-2 text-red-500 hover:text-red-700"
-                          >
-                            Reject
-                          </Button>
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleApproveTransaction(transaction.id, 'deposit')}
+                            >
+                              Approve
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-red-500 hover:text-red-700"
+                              onClick={() => handleRejectTransaction(transaction.id, 'deposit')}
+                            >
+                              Reject
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -369,9 +513,8 @@ export default function DashboardContent() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {/* @ts-ignore */}
-                    {withdrawalTransactions.map((transaction, i) => (
-                      <TableRow key={i}>
+                    {withdrawalTransactions.map((transaction) => (
+                      <TableRow key={transaction.id}>
                         <TableCell className="font-medium">
                           {transaction.user.email}
                         </TableCell>
@@ -382,16 +525,23 @@ export default function DashboardContent() {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button variant="outline" size="sm">
-                            Approve
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="ml-2 text-red-500 hover:text-red-700"
-                          >
-                            Reject
-                          </Button>
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleApproveTransaction(transaction.id, 'withdrawal')}
+                            >
+                              Approve
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-red-500 hover:text-red-700"
+                              onClick={() => handleRejectTransaction(transaction.id, 'withdrawal')}
+                            >
+                              Reject
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}

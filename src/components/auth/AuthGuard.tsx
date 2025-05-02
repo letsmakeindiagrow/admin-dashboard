@@ -10,14 +10,34 @@ export function AuthGuard({ children }: AuthGuardProps) {
   const location = useLocation();
 
   useEffect(() => {
-    const isAuthenticated = document.cookie.includes("admin_token");
-    const isLoginPage = location.pathname === "/login";
+    const checkAuth = () => {
+      // Get all cookies and split them into an array
+      const cookies = document.cookie.split(';');
+      console.log("All cookies:", cookies);
+      
+      // Check if any cookie starts with 'admin_token='
+      const isAuthenticated = cookies.some(cookie => 
+        cookie.trim().startsWith('admin_token=')
+      );
+      
+      const isLoginPage = location.pathname === "/login";
+      console.log("Is authenticated:", isAuthenticated);
+      console.log("Is login page:", isLoginPage);
 
-    if (isAuthenticated && isLoginPage) {
-      navigate("/");
-    } else if (!isAuthenticated && !isLoginPage) {
-      navigate("/login");
-    }
+      if (isAuthenticated && isLoginPage) {
+        navigate("/");
+      } else if (!isAuthenticated && !isLoginPage) {
+        navigate("/login");
+      }
+    };
+
+    // Check auth immediately
+    checkAuth();
+
+    // Also check after a short delay to ensure cookies are loaded
+    const timer = setTimeout(checkAuth, 100);
+
+    return () => clearTimeout(timer);
   }, [navigate, location]);
 
   return <>{children}</>;
