@@ -32,33 +32,49 @@ export default function LoginPage() {
         },
         {
           withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json',
+          },
         }
       );
+      
       if (response.status === 200) {
-        // No need to set cookie here, backend handles it (httpOnly)
+        console.log("Login successful, response:", response.data);
+        
+        // Check if token is in response
+        if (response.data.token) {
+          // Set the cookie with proper attributes
+          const cookieOptions = {
+            path: '/',
+            maxAge: 86400, // 24 hours in seconds
+            secure: true,
+            sameSite: 'lax'
+          };
+          
+          // Format the cookie string
+          const cookieString = `admin_token=${response.data.token}; path=${cookieOptions.path}; max-age=${cookieOptions.maxAge}; secure; sameSite=${cookieOptions.sameSite}`;
+          
+          // Set the cookie
+          document.cookie = cookieString;
+          console.log("Cookie set:", document.cookie);
+        }
+        
         navigate("/");
       }
     } catch (err) {
-      if (axios.isAxiosError(err) && err.response) {
-        // Use error message from backend if available
-        setError(
-          err.response.data.message || "Login failed. Please try again."
-        );
+      if (axios.isAxiosError(err)) {
+        if (err.response) {
+          setError(err.response.data.message || "Login failed. Please try again.");
+        } else if (err.request) {
+          setError("No response from server. Please check your connection.");
+        } else {
+          setError("An error occurred. Please try again later.");
+        }
       } else {
-        // Generic error message for network issues or other errors
-        setError("An error occurred. Please try again later.");
+        setError("An unexpected error occurred.");
       }
-      console.error("Login error:", err); // Keep console log for debugging
+      console.error("Login error:", err);
     }
-
-    // // For demo purposes, using hardcoded credentials - REMOVE THIS BLOCK
-    // if (email === "admin@aadyanviwealth.com" && password === "admin123") {
-    //   // Set authentication cookie
-    //   document.cookie = "isAuthenticated=true; path=/; max-age=86400" // 24 hours
-    //   navigate("/")
-    // } else {
-    //   setError("Invalid email or password")
-    // }
   };
 
   return (
