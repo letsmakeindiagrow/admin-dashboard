@@ -97,15 +97,25 @@ export default function DashboardContent() {
   const [pendingVerifications, setPendingVerifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [transactions, setTransactions] = useState<any[]>([]);
-  const [withdrawalTransactions, setWithdrawalTransactions] = useState<any[]>(
-    []
-  );
+  const [withdrawalTransactions, setWithdrawalTransactions] = useState<any[]>([]);
+  const [activeInvestors, setActiveInvestors] = useState<number>(0);
+  const [unusedFunds, setUnusedFunds] = useState<number>(0);
+  const [activePlans, setActivePlans] = useState<number>(0);
+  const [sipPlans, setSipPlans] = useState<number>(0);
+  const [lumpsumPlans, setLumpsumPlans] = useState<number>(0);
+  const [aum, setAum] = useState<number>(0);
+  const [pendingRequests, setPendingRequests] = useState<number>(0);
   const baseUrl = import.meta.env.VITE_BASE_URL;
 
   useEffect(() => {
     fetchTransactions();
     fetchWithdrawalTransactions();
     fetchPendingVerifications();
+    fetchActiveInvestors();
+    fetchUnusedFunds();
+    fetchActivePlans();
+    fetchAum();
+    fetchPendingRequests();
   }, []);
 
   const fetchTransactions = async () => {
@@ -180,6 +190,122 @@ export default function DashboardContent() {
       setLoading(false);
     }
   };
+
+  const fetchActiveInvestors = async () => {
+    try {
+      const response = await axios.get(
+        `${baseUrl}/api/v1/admin/activeInvestors`,
+        {
+          withCredentials: true,
+        }
+      );
+      if (response.status === 200) {
+        console.log('Active Investors:', response.data);
+        setActiveInvestors(response.data.count || 0);
+      } else {
+        console.error(
+          "Failed to fetch active investors:",
+          response.status,
+          response.data
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching active investors:", error);
+      if (axios.isAxiosError(error)) {
+        console.error('Error details:', {
+          status: error.response?.status,
+          data: error.response?.data
+        });
+      }
+    }
+  };
+
+  const fetchUnusedFunds = async () => {
+    try {
+      const response = await axios.get(
+        `${baseUrl}/api/v1/admin/getUnusedFunds`,
+        { withCredentials: true }
+      );
+      console.log("Unused funds data:", response.data);
+      setUnusedFunds(response.data.funds?._sum?.availableBalance || 0);
+    } catch (error) {
+      console.error("Failed to fetch unused funds:", error);
+      if (axios.isAxiosError(error)) {
+        console.error('Error details:', {
+          status: error.response?.status,
+          data: error.response?.data
+        });
+      }
+    }
+  };
+
+  const fetchActivePlans = async () => {
+    try {
+      const response = await axios.get(
+        `${baseUrl}/api/v1/admin/activePlans`,
+        { withCredentials: true }
+      )
+      console.log("Active plans data:", response.data)
+      setActivePlans(response.data.totalPlans || 0)
+      
+      // Get counts from plansByType array
+      const sipCount = response.data.plansByType.find(
+        (plan: any) => plan.type === "SIP"
+      )?._count?.type || 0
+      const lumpsumCount = response.data.plansByType.find(
+        (plan: any) => plan.type === "LUMPSUM"
+      )?._count?.type || 0
+      
+      setSipPlans(sipCount)
+      setLumpsumPlans(lumpsumCount)
+    } catch (error) {
+      console.error("Failed to fetch active plans:", error)
+      if (axios.isAxiosError(error)) {
+        console.error('Error details:', {
+          status: error.response?.status,
+          data: error.response?.data
+        })
+      }
+    }
+  }
+
+  const fetchAum = async () => {
+    try {
+      const response = await axios.get(
+        `${baseUrl}/api/v1/admin/aum`,
+        { withCredentials: true }
+      )
+      console.log("AUM data:", response.data)
+      setAum(response.data.assets._sum.investedAmount || 0)
+    } catch (error) {
+      console.error("Failed to fetch AUM:", error)
+      if (axios.isAxiosError(error)) {
+        console.error('Error details:', {
+          status: error.response?.status,
+          data: error.response?.data
+        })
+      }
+    }
+  }
+
+  const fetchPendingRequests = async () => {
+    try {
+      const response = await axios.get(
+        `${baseUrl}/api/v1/admin/pendingRequests`,
+        { withCredentials: true }
+      )
+      console.log("Pending requests data:", response.data)
+      setPendingRequests(response.data.totalPending || 0)
+    } catch (error) {
+      console.error("Failed to fetch pending requests:", error)
+      if (axios.isAxiosError(error)) {
+        console.error('Error details:', {
+          status: error.response?.status,
+          data: error.response?.data
+        })
+      }
+    }
+  }
 
   const handleApproveTransaction = async (
     transactionId: string,
@@ -282,29 +408,29 @@ export default function DashboardContent() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Assets Under Management"
-          value="₹12,546,000"
+          value={`₹${aum.toLocaleString()}`}
           change="+15% from last month"
           icon={DollarSign}
           iconColor="text-[#AACF45]"
         />
         <StatsCard
           title="Active Investors"
-          value="2,350"
+          value={activeInvestors.toString()}
           change="+180 new this month"
           icon={Users}
           iconColor="text-[#08AFF1]"
         />
         <StatsCard
-          title="Pending Requests"
-          value="42"
-          change="12 verification, 30 funds"
-          icon={BarChart3}
+          title="Unused Funds"
+          value={`₹${unusedFunds.toLocaleString()}`}
+          change="Available for investment"
+          icon={CreditCard}
           iconColor="text-[#AACF45]"
         />
         <StatsCard
           title="Active Plans"
-          value="15"
-          change="8 SIP, 7 Lumpsum"
+          value={activePlans.toString()}
+          change={`${sipPlans} SIP, ${lumpsumPlans} Lumpsum`}
           icon={CreditCard}
           iconColor="text-[#08AFF1]"
         />
@@ -333,9 +459,14 @@ export default function DashboardContent() {
                 Fund Withdrawal
               </TabsTrigger>
             </TabsList>
-            <Button className="bg-[#AACF45] hover:bg-[#9abe3a]">
-              View All Requests
-            </Button>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="bg-gray-100">
+                Pending Requests
+              </Badge>
+              <Badge className="bg-[#08AFF1] text-white">
+                {pendingRequests}
+              </Badge>
+            </div>
           </div>
 
           <TabsContent value="verification" className="mt-4">

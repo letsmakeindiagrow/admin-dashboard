@@ -1,6 +1,6 @@
 // components/dashboard/Header.tsx
 import { Button } from "@/components/ui/button"
-import { Activity, LayoutDashboard } from "lucide-react"
+import { Activity, LayoutDashboard, LogOut, Settings, User } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import axios from "axios"
 
 interface HeaderProps {
   activeTab: string
@@ -23,6 +24,23 @@ const tabTitles: Record<string, string> = {
 }
 
 export default function Header({ activeTab }: HeaderProps) {
+  const handleLogout = async () => {
+    try {
+      const response = await axios.post(
+        "http://localhost:5001/admin/logout",
+        {},
+        { withCredentials: true }
+      )
+      console.log('Logout response:', response.data)
+    } catch (error: any) {
+      console.error('Logout error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      })
+    }
+  }
+
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-white px-4 lg:px-6">
       <Button variant="ghost" size="icon" className="md:hidden">
@@ -42,20 +60,21 @@ export default function Header({ activeTab }: HeaderProps) {
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="rounded-full">
+            <div className="flex items-center gap-2 cursor-pointer">
               <Avatar className="h-8 w-8">
                 <AvatarImage src="/placeholder-user.jpg" alt="Admin" />
-                <AvatarFallback className="bg-[#08AFF1] text-white">AD</AvatarFallback>
+                <AvatarFallback className="bg-[#08AFF1] text-white">👤</AvatarFallback>
               </Avatar>
-            </Button>
+              <span className="font-medium">Administrator</span>
+            </div>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+          <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Settings</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Logout</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Logout</span>
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

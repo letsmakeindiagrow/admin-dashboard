@@ -46,14 +46,7 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
             </Button>
           ))}
 
-          {/* Logout Button */}
-          <Button
-            variant="ghost"
-            className="flex items-center gap-4 rounded-lg px-3 py-2 text-gray-600 transition-all hover:text-gray-900 text-lg justify-start"
-          >
-            <LogOut className="h-5 w-5" />
-            Logout
-          </Button>
+          
         </nav>
 
         {/* User Info pinned at bottom */}

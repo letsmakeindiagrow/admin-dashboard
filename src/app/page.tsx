@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Activity,
   BarChart3,
@@ -6,11 +6,12 @@ import {
   CreditCard,
   DollarSign,
   LayoutDashboard,
-  LogOut,
   PieChart,
   Settings,
   Users,
 } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import axios from "axios"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -33,6 +34,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("dashboard")
+
+  useEffect(() => {
+    console.log('Dashboard component mounted')
+  }, [])
 
   return (
     <div className="flex min-h-screen w-full bg-gray-50">
@@ -89,13 +94,6 @@ export default function Dashboard() {
             >
               <Settings className="h-4 w-4" />
               User Roles
-            </Button>
-            <Button
-              variant="ghost"
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900"
-            >
-              <LogOut className="h-4 w-4" />
-              Logout
             </Button>
           </nav>
         </div>
@@ -181,12 +179,12 @@ export default function Dashboard() {
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium">Pending Requests</CardTitle>
-                  <BarChart3 className="h-4 w-4 text-[#AACF45]" />
+                  <CardTitle className="text-sm font-medium">Unused Funds</CardTitle>
+                  <CreditCard className="h-4 w-4 text-[#AACF45]" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">42</div>
-                  <p className="text-xs text-muted-foreground">12 verification, 30 funds</p>
+                  <div className="text-2xl font-bold">₹1,250,000</div>
+                  <p className="text-xs text-muted-foreground">Available for investment</p>
                 </CardContent>
               </Card>
               <Card>
