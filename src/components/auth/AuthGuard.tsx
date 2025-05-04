@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 
 interface AuthGuardProps {
@@ -8,7 +8,6 @@ interface AuthGuardProps {
 
 export function AuthGuard({ children }: AuthGuardProps) {
   const navigate = useNavigate();
-  const location = useLocation();
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
