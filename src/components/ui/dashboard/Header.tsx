@@ -27,11 +27,11 @@ export default function Header({ activeTab }: HeaderProps) {
   const navigate = useNavigate();
   const { setIsAuthenticated } = useAuth();
 
-  const baseUrl = import.meta.env.VITE_BASE_URL;
+  // const baseUrl = import.meta.env.VITE_BASE_URL;
   const handleLogout = async () => {
     try {
       const response = await axios.post(
-        `${baseUrl}/api/v1/admin/logout`,
+        `/api/v1/admin/logout`,
         {},
         {
           withCredentials: true,

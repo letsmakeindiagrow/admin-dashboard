@@ -33,17 +33,14 @@ export default function InvestmentContent() {
 
   const fetchInvestmentPlans = async () => {
     try {
-      const baseUrl = import.meta.env.VITE_BASE_URL;
-      if (!baseUrl) {
-        console.error("API base URL is not defined in environment variables.");
-        return;
-      }
-      const response = await axios.get(
-        `${baseUrl}/api/v1/admin/get-investment-plans`,
-        {
-          withCredentials: true,
-        }
-      );
+      // const baseUrl = import.meta.env.VITE_BASE_URL;
+      // if (!baseUrl) {
+      //   console.error("API base URL is not defined in environment variables.");
+      //   return;
+      // }
+      const response = await axios.get(`/api/v1/admin/get-investment-plans`, {
+        withCredentials: true,
+      });
       if (response.status === 200) {
         // Assuming the backend returns { investmentPlans: [...] }
         setPlans(response.data.investmentPlans || []);
@@ -73,13 +70,13 @@ export default function InvestmentContent() {
     };
 
     try {
-      const baseUrl = import.meta.env.VITE_BASE_URL;
-      if (!baseUrl) {
-        console.error("API base URL is not defined in environment variables.");
-        return;
-      }
+      // const baseUrl = import.meta.env.VITE_BASE_URL;
+      // if (!baseUrl) {
+      //   console.error("API base URL is not defined in environment variables.");
+      //   return;
+      // }
       const response = await axios.post(
-        `${baseUrl}/api/v1/admin/create-investment-plan`,
+        `/api/v1/admin/create-investment-plan`,
         planToSend,
         {
           withCredentials: true,

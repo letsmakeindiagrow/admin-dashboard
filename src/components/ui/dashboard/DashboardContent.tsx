@@ -107,7 +107,7 @@ export default function DashboardContent() {
   const [lumpsumPlans, setLumpsumPlans] = useState<number>(0);
   const [aum, setAum] = useState<number>(0);
   const [pendingRequests, setPendingRequests] = useState<number>(0);
-  const baseUrl = import.meta.env.VITE_BASE_URL;
+  // const baseUrl = import.meta.env.VITE_BASE_URL;
 
   useEffect(() => {
     fetchTransactions();
@@ -123,7 +123,7 @@ export default function DashboardContent() {
   const fetchTransactions = async () => {
     try {
       const response = await axios.get(
-        `${baseUrl}/api/v1/admin/get-deposit-transactions`,
+        `/api/v1/admin/get-deposit-transactions`,
         {
           withCredentials: true,
         }
@@ -146,7 +146,7 @@ export default function DashboardContent() {
   const fetchWithdrawalTransactions = async () => {
     try {
       const response = await axios.get(
-        `${baseUrl}/api/v1/admin/get-withdrawal-transactions`,
+        `/api/v1/admin/get-withdrawal-transactions`,
         {
           withCredentials: true,
         }
@@ -170,7 +170,7 @@ export default function DashboardContent() {
 
   const fetchPendingVerifications = async () => {
     try {
-      const response = await axios.get(`${baseUrl}/api/v1/admin/get-users`, {
+      const response = await axios.get(`/api/v1/admin/get-users`, {
         withCredentials: true,
       });
       if (response.status === 200) {
@@ -195,12 +195,9 @@ export default function DashboardContent() {
 
   const fetchActiveInvestors = async () => {
     try {
-      const response = await axios.get(
-        `${baseUrl}/api/v1/admin/activeInvestors`,
-        {
-          withCredentials: true,
-        }
-      );
+      const response = await axios.get(`/api/v1/admin/activeInvestors`, {
+        withCredentials: true,
+      });
       if (response.status === 200) {
         console.log("Active Investors:", response.data);
         setActiveInvestors(response.data.count || 0);
@@ -224,10 +221,9 @@ export default function DashboardContent() {
 
   const fetchUnusedFunds = async () => {
     try {
-      const response = await axios.get(
-        `${baseUrl}/api/v1/admin/getUnusedFunds`,
-        { withCredentials: true }
-      );
+      const response = await axios.get(`/api/v1/admin/getUnusedFunds`, {
+        withCredentials: true,
+      });
       console.log("Unused funds data:", response.data);
       setUnusedFunds(response.data.funds?._sum?.availableBalance || 0);
     } catch (error) {
@@ -243,7 +239,7 @@ export default function DashboardContent() {
 
   const fetchActivePlans = async () => {
     try {
-      const response = await axios.get(`${baseUrl}/api/v1/admin/activePlans`, {
+      const response = await axios.get(`/api/v1/admin/activePlans`, {
         withCredentials: true,
       });
       console.log("Active plans data:", response.data);
@@ -272,7 +268,7 @@ export default function DashboardContent() {
 
   const fetchAum = async () => {
     try {
-      const response = await axios.get(`${baseUrl}/api/v1/admin/aum`, {
+      const response = await axios.get(`/api/v1/admin/aum`, {
         withCredentials: true,
       });
       console.log("AUM data:", response.data);
@@ -290,10 +286,9 @@ export default function DashboardContent() {
 
   const fetchPendingRequests = async () => {
     try {
-      const response = await axios.get(
-        `${baseUrl}/api/v1/admin/pendingRequests`,
-        { withCredentials: true }
-      );
+      const response = await axios.get(`/api/v1/admin/pendingRequests`, {
+        withCredentials: true,
+      });
       console.log("Pending requests data:", response.data);
       setPendingRequests(response.data.totalPending || 0);
     } catch (error) {
@@ -322,8 +317,8 @@ export default function DashboardContent() {
 
       const endpoint =
         type === "deposit"
-          ? `${baseUrl}/api/v1/admin/add-funds`
-          : `${baseUrl}/api/v1/admin/withdraw-funds`;
+          ? `/api/v1/admin/add-funds`
+          : `/api/v1/admin/withdraw-funds`;
 
       const response = await axios.post(
         endpoint,
@@ -370,8 +365,8 @@ export default function DashboardContent() {
 
       const endpoint =
         type === "deposit"
-          ? `${baseUrl}/api/v1/admin/add-funds`
-          : `${baseUrl}/api/v1/admin/withdraw-funds`;
+          ? `/api/v1/admin/add-funds`
+          : `/api/v1/admin/withdraw-funds`;
 
       const response = await axios.post(
         endpoint,
@@ -552,7 +547,7 @@ export default function DashboardContent() {
                                 onClick={async () => {
                                   try {
                                     const response = await axios.post(
-                                      `${baseUrl}/api/v1/admin/verify-user/`,
+                                      `/api/v1/admin/verify-user/`,
                                       { userId: user.id, status: "approve" },
                                       { withCredentials: true }
                                     );
@@ -575,7 +570,7 @@ export default function DashboardContent() {
                                 onClick={async () => {
                                   try {
                                     const response = await axios.post(
-                                      `${baseUrl}/api/v1/admin/verify-user/`,
+                                      `/api/v1/admin/verify-user/`,
                                       { userId: user.id, status: "rejected" },
                                       { withCredentials: true }
                                     );

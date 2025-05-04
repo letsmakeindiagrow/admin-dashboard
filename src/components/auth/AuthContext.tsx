@@ -13,11 +13,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const baseUrl = import.meta.env.VITE_BASE_URL;
+  // const baseUrl = import.meta.env.VITE_BASE_URL;
 
   const checkAuth = async () => {
     try {
-      const res = await axios.get(`${baseUrl}/api/v1/admin/checkAuth`, {
+      const res = await axios.get(`/api/v1/admin/checkAuth`, {
         withCredentials: true,
       });
       setIsAuthenticated(res.data.authenticated);
