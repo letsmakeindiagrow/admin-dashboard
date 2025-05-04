@@ -17,7 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import StatsCard from "./StatsCard";
-import { DollarSign, Users, BarChart3, CreditCard } from "lucide-react";
+import { DollarSign, Users, CreditCard } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useState, useEffect } from "react";
@@ -97,7 +97,9 @@ export default function DashboardContent() {
   const [pendingVerifications, setPendingVerifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [transactions, setTransactions] = useState<any[]>([]);
-  const [withdrawalTransactions, setWithdrawalTransactions] = useState<any[]>([]);
+  const [withdrawalTransactions, setWithdrawalTransactions] = useState<any[]>(
+    []
+  );
   const [activeInvestors, setActiveInvestors] = useState<number>(0);
   const [unusedFunds, setUnusedFunds] = useState<number>(0);
   const [activePlans, setActivePlans] = useState<number>(0);
@@ -200,7 +202,7 @@ export default function DashboardContent() {
         }
       );
       if (response.status === 200) {
-        console.log('Active Investors:', response.data);
+        console.log("Active Investors:", response.data);
         setActiveInvestors(response.data.count || 0);
       } else {
         console.error(
@@ -212,9 +214,9 @@ export default function DashboardContent() {
     } catch (error) {
       console.error("Error fetching active investors:", error);
       if (axios.isAxiosError(error)) {
-        console.error('Error details:', {
+        console.error("Error details:", {
           status: error.response?.status,
-          data: error.response?.data
+          data: error.response?.data,
         });
       }
     }
@@ -231,9 +233,9 @@ export default function DashboardContent() {
     } catch (error) {
       console.error("Failed to fetch unused funds:", error);
       if (axios.isAxiosError(error)) {
-        console.error('Error details:', {
+        console.error("Error details:", {
           status: error.response?.status,
-          data: error.response?.data
+          data: error.response?.data,
         });
       }
     }
@@ -241,71 +243,69 @@ export default function DashboardContent() {
 
   const fetchActivePlans = async () => {
     try {
-      const response = await axios.get(
-        `${baseUrl}/api/v1/admin/activePlans`,
-        { withCredentials: true }
-      )
-      console.log("Active plans data:", response.data)
-      setActivePlans(response.data.totalPlans || 0)
-      
+      const response = await axios.get(`${baseUrl}/api/v1/admin/activePlans`, {
+        withCredentials: true,
+      });
+      console.log("Active plans data:", response.data);
+      setActivePlans(response.data.totalPlans || 0);
+
       // Get counts from plansByType array
-      const sipCount = response.data.plansByType.find(
-        (plan: any) => plan.type === "SIP"
-      )?._count?.type || 0
-      const lumpsumCount = response.data.plansByType.find(
-        (plan: any) => plan.type === "LUMPSUM"
-      )?._count?.type || 0
-      
-      setSipPlans(sipCount)
-      setLumpsumPlans(lumpsumCount)
+      const sipCount =
+        response.data.plansByType.find((plan: any) => plan.type === "SIP")
+          ?._count?.type || 0;
+      const lumpsumCount =
+        response.data.plansByType.find((plan: any) => plan.type === "LUMPSUM")
+          ?._count?.type || 0;
+
+      setSipPlans(sipCount);
+      setLumpsumPlans(lumpsumCount);
     } catch (error) {
-      console.error("Failed to fetch active plans:", error)
+      console.error("Failed to fetch active plans:", error);
       if (axios.isAxiosError(error)) {
-        console.error('Error details:', {
+        console.error("Error details:", {
           status: error.response?.status,
-          data: error.response?.data
-        })
+          data: error.response?.data,
+        });
       }
     }
-  }
+  };
 
   const fetchAum = async () => {
     try {
-      const response = await axios.get(
-        `${baseUrl}/api/v1/admin/aum`,
-        { withCredentials: true }
-      )
-      console.log("AUM data:", response.data)
-      setAum(response.data.assets._sum.investedAmount || 0)
+      const response = await axios.get(`${baseUrl}/api/v1/admin/aum`, {
+        withCredentials: true,
+      });
+      console.log("AUM data:", response.data);
+      setAum(response.data.assets._sum.investedAmount || 0);
     } catch (error) {
-      console.error("Failed to fetch AUM:", error)
+      console.error("Failed to fetch AUM:", error);
       if (axios.isAxiosError(error)) {
-        console.error('Error details:', {
+        console.error("Error details:", {
           status: error.response?.status,
-          data: error.response?.data
-        })
+          data: error.response?.data,
+        });
       }
     }
-  }
+  };
 
   const fetchPendingRequests = async () => {
     try {
       const response = await axios.get(
         `${baseUrl}/api/v1/admin/pendingRequests`,
         { withCredentials: true }
-      )
-      console.log("Pending requests data:", response.data)
-      setPendingRequests(response.data.totalPending || 0)
+      );
+      console.log("Pending requests data:", response.data);
+      setPendingRequests(response.data.totalPending || 0);
     } catch (error) {
-      console.error("Failed to fetch pending requests:", error)
+      console.error("Failed to fetch pending requests:", error);
       if (axios.isAxiosError(error)) {
-        console.error('Error details:', {
+        console.error("Error details:", {
           status: error.response?.status,
-          data: error.response?.data
-        })
+          data: error.response?.data,
+        });
       }
     }
-  }
+  };
 
   const handleApproveTransaction = async (
     transactionId: string,

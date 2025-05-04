@@ -1,14 +1,14 @@
 // components/dashboard/Sidebar.tsx
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { LayoutDashboard, DollarSign, Users, Settings, LogOut } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button";
+import { LayoutDashboard, DollarSign, Users, Settings } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface SidebarProps {
-  activeTab: string
-  setActiveTab: (tab: string) => void
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
 }
 
 export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
@@ -17,7 +17,7 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
     { id: "investment", icon: DollarSign, label: "Investment Plans" },
     { id: "users", icon: Users, label: "User Management" },
     { id: "roles", icon: Settings, label: "User Roles" },
-  ]
+  ];
 
   return (
     <div className="fixed top-0 left-0 h-screen w-64 flex-col bg-white shadow-sm hidden md:flex">
@@ -37,7 +37,8 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
               variant={activeTab === tab.id ? "default" : "ghost"}
               className={cn(
                 "flex items-center gap-4 rounded-lg px-3 py-2 text-gray-600 transition-all hover:text-gray-900 text-lg justify-start",
-                activeTab === tab.id && "bg-[#AACF45] text-white hover:text-white shadow-md"
+                activeTab === tab.id &&
+                  "bg-[#AACF45] text-white hover:text-white shadow-md"
               )}
               onClick={() => setActiveTab(tab.id)}
             >
@@ -45,8 +46,6 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
               {tab.label}
             </Button>
           ))}
-
-          
         </nav>
 
         {/* User Info pinned at bottom */}
@@ -54,7 +53,9 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
           <div className="flex items-center gap-3">
             <Avatar>
               <AvatarImage src="/placeholder-user.jpg" alt="Admin" />
-              <AvatarFallback className="bg-[#08AFF1] text-white">AD</AvatarFallback>
+              <AvatarFallback className="bg-[#08AFF1] text-white">
+                AD
+              </AvatarFallback>
             </Avatar>
             <div>
               <p className="text-sm font-medium">Admin User</p>
@@ -64,5 +65,5 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

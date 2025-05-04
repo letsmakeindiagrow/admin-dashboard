@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -11,13 +10,14 @@ import {
   CardTitle,
 } from "../ui/card";
 import { Label } from "../ui/label";
+import { useAuth } from "./AuthContext";
 
 export default function LoginPage() {
-  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const baseUrl = import.meta.env.VITE_BASE_URL;
+  const { checkAuth } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,38 +33,20 @@ export default function LoginPage() {
         {
           withCredentials: true,
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         }
       );
-      
+
       if (response.status === 200) {
-        console.log("Login successful, response:", response.data);
-        
-        // Check if token is in response
-        if (response.data.token) {
-          // Set the cookie with proper attributes
-          const cookieOptions = {
-            path: '/',
-            maxAge: 86400, // 24 hours in seconds
-            secure: true,
-            sameSite: 'lax'
-          };
-          
-          // Format the cookie string
-          const cookieString = `admin_token=${response.data.token}; path=${cookieOptions.path}; max-age=${cookieOptions.maxAge}; secure; sameSite=${cookieOptions.sameSite}`;
-          
-          // Set the cookie
-          document.cookie = cookieString;
-          console.log("Cookie set:", document.cookie);
-        }
-        
-        navigate("/");
+        await checkAuth();
       }
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response) {
-          setError(err.response.data.message || "Login failed. Please try again.");
+          setError(
+            err.response.data.message || "Login failed. Please try again."
+          );
         } else if (err.request) {
           setError("No response from server. Please check your connection.");
         } else {
