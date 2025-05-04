@@ -7,30 +7,28 @@ import { AuthProvider } from "./components/auth/AuthContext";
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route
-          path="/login"
-          element={
-            <AuthProvider>
+      <AuthProvider>
+        <Routes>
+          <Route
+            path="/login"
+            element={
               <AuthGuard>
                 <LoginPage />
               </AuthGuard>
-            </AuthProvider>
-          }
-        />
-        <Route
-          path="/"
-          element={
-            <AuthProvider>
+            }
+          />
+          <Route
+            path="/"
+            element={
               <AuthGuard>
                 <div className="min-h-screen w-full">
                   <DashboardLayout />
                 </div>
               </AuthGuard>
-            </AuthProvider>
-          }
-        />
-      </Routes>
+            }
+          />
+        </Routes>
+      </AuthProvider>
     </Router>
   );
 }
