@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "../ui/card";
 import { Label } from "../ui/label";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 
 export default function LoginPage() {
@@ -17,11 +18,22 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   // const baseUrl = import.meta.env.VITE_BASE_URL;
-  const { checkAuth } = useAuth();
+  const { isAuthenticated, setIsAuthenticated } = useAuth();
+  const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate();
+
+  // Redirect already authenticated users to dashboard
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
     try {
       const response = await axios.post(
@@ -39,7 +51,8 @@ export default function LoginPage() {
       );
 
       if (response.status === 200) {
-        await checkAuth();
+        setIsAuthenticated(true);
+        navigate("/");
       }
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -56,8 +69,18 @@ export default function LoginPage() {
         setError("An unexpected error occurred.");
       }
       console.error("Login error:", err);
+    } finally {
+      setLoading(false);
     }
   };
+
+  if (isAuthenticated === null) {
+    return <div>Loading...</div>;
+  }
+
+  if (isAuthenticated) {
+    return null; // Will redirect via useEffect
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -93,8 +116,8 @@ export default function LoginPage() {
               />
             </div>
             {error && <p className="text-red-500 text-sm">{error}</p>}
-            <Button type="submit" className="w-full">
-              Login
+            <Button type="submit" disabled={loading} className="w-full">
+              {loading ? "Logging in..." : "Log In"}
             </Button>
           </form>
         </CardContent>

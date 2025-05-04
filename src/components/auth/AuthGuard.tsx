@@ -15,18 +15,12 @@ export function AuthGuard({ children }: AuthGuardProps) {
     if (isAuthenticated === null) {
       // Still loading, optionally show a spinner
       return;
+    } else if (!isAuthenticated) {
+      navigate("/login", { replace: true });
     }
-    const isLoginPage = location.pathname === "/login";
-    if (isAuthenticated && isLoginPage) {
-      navigate("/");
-    } else if (!isAuthenticated && !isLoginPage) {
-      navigate("/login");
-    }
-    // Optionally, re-check auth on certain events
-    // checkAuth();
-  }, [isAuthenticated, location.pathname, navigate]);
+  }, [isAuthenticated, navigate]);
 
   if (isAuthenticated === null) return null; // or a loading spinner
 
-  return <>{children}</>;
+  return isAuthenticated ? <>{children}</> : null;
 }

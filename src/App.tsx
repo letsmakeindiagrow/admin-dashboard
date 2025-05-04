@@ -9,14 +9,7 @@ function App() {
     <Router>
       <AuthProvider>
         <Routes>
-          <Route
-            path="/login"
-            element={
-              <AuthGuard>
-                <LoginPage />
-              </AuthGuard>
-            }
-          />
+          <Route path="/login" element={<LoginPage />} />
           <Route
             path="/"
             element={
