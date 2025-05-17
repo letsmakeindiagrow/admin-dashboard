@@ -17,7 +17,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const checkAuth = async () => {
     try {
-      const res = await axios.get(`/api/v1/admin/checkAuth`, {
+      const res = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/v1/admin/checkAuth`, {
         withCredentials: true,
       });
       setIsAuthenticated(res.data.authenticated);

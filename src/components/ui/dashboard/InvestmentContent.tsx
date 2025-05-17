@@ -33,7 +33,7 @@ export default function InvestmentContent() {
 
   const fetchInvestmentPlans = async () => {
     try {
-      const response = await axios.get(`/api/v1/admin/get-investment-plans`, {
+      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/v1/admin/get-investment-plans`, {
         withCredentials: true,
       });
       if (response.status === 200) {
@@ -66,7 +66,7 @@ export default function InvestmentContent() {
 
     try {
       const response = await axios.post(
-        `/api/v1/admin/create-investment-plan`,
+        `${import.meta.env.VITE_BASE_URL}/api/v1/admin/create-investment-plan`,
         planToSend,
         {
           withCredentials: true,

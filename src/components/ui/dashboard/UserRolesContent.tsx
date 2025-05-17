@@ -1,7 +1,6 @@
-// components/dashboard/RolesContent.tsx
 import { Clock, Shield, Users } from "lucide-react";
 
-export default function RolesContent() {
+export default function UserRolesContent() {
   return (
     <main className="flex-1 overflow-auto p-4 md:p-6">
       <div className="flex justify-between items-center mb-6">

@@ -37,7 +37,7 @@ export default function LoginPage() {
 
     try {
       const response = await axios.post(
-        `/api/v1/admin/login`,
+        `${import.meta.env.VITE_BASE_URL}/api/v1/admin/login`,
         {
           email,
           password,

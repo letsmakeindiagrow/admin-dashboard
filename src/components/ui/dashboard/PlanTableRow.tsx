@@ -50,7 +50,7 @@ export default function PlanTableRow({ plan, index, onDelete, onStatusChange }: 
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      await axios.delete(`/api/v1/admin/deletePlan/${plan.id}`, {
+      await axios.delete(`${import.meta.env.VITE_BASE_URL}/api/v1/admin/deletePlan/${plan.id}`, {
         withCredentials: true,
       });
       setShowDeleteModal(false);
@@ -73,7 +73,7 @@ export default function PlanTableRow({ plan, index, onDelete, onStatusChange }: 
     setStatusLoading(true);
     try {
       await axios.post(
-        `/api/v1/admin/planStatus`,
+        `${import.meta.env.VITE_BASE_URL}/api/v1/admin/planStatus`,
         {
           planId: plan.id,
           status: pendingStatus,
@@ -116,7 +116,7 @@ export default function PlanTableRow({ plan, index, onDelete, onStatusChange }: 
     }
     try {
       await axios.post(
-        `/api/v1/admin/edit-investment-plan`,
+        `${import.meta.env.VITE_BASE_URL}/api/v1/admin/edit-investment-plan`,
         {
           planId: plan.id,
           name: editFields.name,
