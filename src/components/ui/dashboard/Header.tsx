@@ -31,7 +31,7 @@ export default function Header({ activeTab }: HeaderProps) {
   const handleLogout = async () => {
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/api/v1/admin/logout`,
+        `/api/v1/admin/logout`,
         {},
         {
           withCredentials: true,

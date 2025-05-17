@@ -123,7 +123,7 @@ export default function DashboardContent() {
   const fetchTransactions = async () => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_BASE_URL}/api/v1/admin/get-deposit-transactions`,
+        `/api/v1/admin/get-deposit-transactions`,
         {
           withCredentials: true,
         }
@@ -146,7 +146,7 @@ export default function DashboardContent() {
   const fetchWithdrawalTransactions = async () => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_BASE_URL}/api/v1/admin/get-withdrawal-transactions`,
+        `/api/v1/admin/get-withdrawal-transactions`,
         {
           withCredentials: true,
         }
@@ -170,7 +170,7 @@ export default function DashboardContent() {
 
   const fetchPendingVerifications = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/v1/admin/get-users`, {
+      const response = await axios.get(`/api/v1/admin/get-users`, {
         withCredentials: true,
       });
       if (response.status === 200) {
@@ -195,7 +195,7 @@ export default function DashboardContent() {
 
   const fetchActiveInvestors = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/v1/admin/activeInvestors`, {
+      const response = await axios.get(`/api/v1/admin/activeInvestors`, {
         withCredentials: true,
       });
       if (response.status === 200) {
@@ -221,7 +221,7 @@ export default function DashboardContent() {
 
   const fetchUnusedFunds = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/v1/admin/getUnusedFunds`, {
+      const response = await axios.get(`/api/v1/admin/getUnusedFunds`, {
         withCredentials: true,
       });
       console.log("Unused funds data:", response.data);
@@ -239,7 +239,7 @@ export default function DashboardContent() {
 
   const fetchActivePlans = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/v1/admin/activePlans`, {
+      const response = await axios.get(`/api/v1/admin/activePlans`, {
         withCredentials: true,
       });
       console.log("Active plans data:", response.data);
@@ -268,7 +268,7 @@ export default function DashboardContent() {
 
   const fetchAum = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/v1/admin/aum`, {
+      const response = await axios.get(`/api/v1/admin/aum`, {
         withCredentials: true,
       });
       console.log("AUM data:", response.data);
@@ -286,7 +286,7 @@ export default function DashboardContent() {
 
   const fetchPendingRequests = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/v1/admin/pendingRequests`, {
+      const response = await axios.get(`/api/v1/admin/pendingRequests`, {
         withCredentials: true,
       });
       console.log("Pending requests data:", response.data);
@@ -317,8 +317,8 @@ export default function DashboardContent() {
 
       const endpoint =
         type === "deposit"
-          ? `${import.meta.env.VITE_BASE_URL}/api/v1/admin/add-funds`
-          : `${import.meta.env.VITE_BASE_URL}/api/v1/admin/withdraw-funds`;
+          ? `/api/v1/admin/add-funds`
+          : `/api/v1/admin/withdraw-funds`;
 
       const response = await axios.post(
         endpoint,
@@ -365,8 +365,8 @@ export default function DashboardContent() {
 
       const endpoint =
         type === "deposit"
-          ? `${import.meta.env.VITE_BASE_URL}/api/v1/admin/add-funds`
-          : `${import.meta.env.VITE_BASE_URL}/api/v1/admin/withdraw-funds`;
+          ? `/api/v1/admin/add-funds`
+          : `/api/v1/admin/withdraw-funds`;
 
       const response = await axios.post(
         endpoint,
@@ -547,7 +547,7 @@ export default function DashboardContent() {
                                 onClick={async () => {
                                   try {
                                     const response = await axios.post(
-                                      `${import.meta.env.VITE_BASE_URL}/api/v1/admin/verify-user`,
+                                      `/api/v1/admin/verify-user`,
                                       { userId: user.id, status: "approve" },
                                       { withCredentials: true }
                                     );
@@ -570,7 +570,7 @@ export default function DashboardContent() {
                                 onClick={async () => {
                                   try {
                                     const response = await axios.post(
-                                      `${import.meta.env.VITE_BASE_URL}/api/v1/admin/verify-user`,
+                                      `/api/v1/admin/verify-user`,
                                       { userId: user.id, status: "rejected" },
                                       { withCredentials: true }
                                     );

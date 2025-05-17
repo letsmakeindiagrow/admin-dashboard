@@ -43,7 +43,7 @@ export default function UserTableRow({ user, onVerify }: UserTableRowProps) {
   const handleVerification = async (status: "approve" | "reject") => {
     try {
       await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/api/v1/admin/verify-user`,
+        `/api/v1/admin/verify-user`,
         { userId: user.id, status },
         { withCredentials: true }
       );
@@ -55,7 +55,7 @@ export default function UserTableRow({ user, onVerify }: UserTableRowProps) {
 
   const handleView = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/v1/admin/get-user/${user.id}`, {
+      const response = await axios.get(`/api/v1/admin/get-user/${user.id}`, {
         withCredentials: true,
       });
       setUserDetails(response.data.user);

@@ -97,7 +97,7 @@ export default function UsersContent() {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/v1/admin/get-users`, {
+      const response = await axios.get(`/api/v1/admin/get-users`, {
         withCredentials: true,
       });
       if (response.status === 200) {
@@ -251,7 +251,7 @@ export default function UsersContent() {
             ? null
             : addUserFields.referralCode,
       };
-      await axios.post(`${import.meta.env.VITE_BASE_URL}/api/v1/admin/create-new-user`, payload, {
+      await axios.post(`/api/v1/admin/create-new-user`, payload, {
         withCredentials: true,
         headers: { "Content-Type": "application/json" },
       });
