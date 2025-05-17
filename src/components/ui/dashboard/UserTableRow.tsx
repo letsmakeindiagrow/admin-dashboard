@@ -42,11 +42,6 @@ export default function UserTableRow({ user, onVerify }: UserTableRowProps) {
 
   const handleVerification = async (status: "approve" | "reject") => {
     try {
-      // const baseUrl = import.meta.env.VITE_BASE_URL;
-      // if (!baseUrl) {
-      //   console.error("API base URL is not defined in environment variables.");
-      //   return;
-      // }
       await axios.post(
         `/api/v1/admin/verify-user`,
         { userId: user.id, status },
@@ -60,11 +55,6 @@ export default function UserTableRow({ user, onVerify }: UserTableRowProps) {
 
   const handleView = async () => {
     try {
-      // const baseUrl = import.meta.env.VITE_BASE_URL;
-      // if (!baseUrl) {
-      //   console.error("API base URL is not defined in environment variables.");
-      //   return;
-      // }
       const response = await axios.get(`/api/v1/admin/get-user/${user.id}`, {
         withCredentials: true,
       });

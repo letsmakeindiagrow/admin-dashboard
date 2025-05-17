@@ -54,12 +54,12 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
             <Avatar>
               <AvatarImage src="/placeholder-user.jpg" alt="Admin" />
               <AvatarFallback className="bg-[#08AFF1] text-white">
-                AD
+                AWM
               </AvatarFallback>
             </Avatar>
             <div>
-              <p className="text-sm font-medium">Admin User</p>
-              <p className="text-xs text-gray-500">admin@example.com</p>
+              <p className="text-sm font-medium">Administrator</p>
+              <p className="text-xs text-gray-500">admin@aadyanviwealth.com</p>
             </div>
           </div>
         </div>

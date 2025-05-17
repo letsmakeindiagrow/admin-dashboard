@@ -33,11 +33,6 @@ export default function InvestmentContent() {
 
   const fetchInvestmentPlans = async () => {
     try {
-      // const baseUrl = import.meta.env.VITE_BASE_URL;
-      // if (!baseUrl) {
-      //   console.error("API base URL is not defined in environment variables.");
-      //   return;
-      // }
       const response = await axios.get(`/api/v1/admin/get-investment-plans`, {
         withCredentials: true,
       });
@@ -70,11 +65,6 @@ export default function InvestmentContent() {
     };
 
     try {
-      // const baseUrl = import.meta.env.VITE_BASE_URL;
-      // if (!baseUrl) {
-      //   console.error("API base URL is not defined in environment variables.");
-      //   return;
-      // }
       const response = await axios.post(
         `/api/v1/admin/create-investment-plan`,
         planToSend,
@@ -150,7 +140,7 @@ export default function InvestmentContent() {
             </TableHeader>
             <TableBody>
               {plans.map((plan, i) => (
-                <PlanTableRow key={i} plan={plan} index={i} />
+                <PlanTableRow key={i} plan={plan} index={i} onDelete={fetchInvestmentPlans} onStatusChange={fetchInvestmentPlans} />
               ))}
             </TableBody>
           </Table>
