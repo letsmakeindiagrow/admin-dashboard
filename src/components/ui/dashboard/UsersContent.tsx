@@ -73,17 +73,17 @@ export default function UsersContent() {
     },
     identityDetails: {
       panNumber: "",
-      panAttachment: null,
+      panAttachment: "",
       aadharNumber: "",
-      aadharFront: null,
-      aadharBack: null,
+      aadharFront: "",
+      aadharBack: "",
     },
     bankDetails: {
       accountNumber: "",
       ifscCode: "",
       bankName: "",
       branchName: "",
-      proofAttachment: null,
+      proofAttachment: "",
     },
   });
   const [showAddress, setShowAddress] = useState(false);
@@ -130,36 +130,22 @@ export default function UsersContent() {
   });
 
   const handleAddUserChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, files } = e.target;
+    const { name, value } = e.target;
     if (name.startsWith("address.")) {
       setAddUserFields((prev) => ({
         ...prev,
         address: { ...prev.address, [name.split(".")[1]]: value },
       }));
     } else if (name.startsWith("identityDetails.")) {
-      if (type === "file") {
-        setAddUserFields((prev) => ({
-          ...prev,
-          identityDetails: { ...prev.identityDetails, [name.split(".")[1]]: files ? files[0] : null },
-        }));
-      } else {
-        setAddUserFields((prev) => ({
-          ...prev,
-          identityDetails: { ...prev.identityDetails, [name.split(".")[1]]: value },
-        }));
-      }
+      setAddUserFields((prev) => ({
+        ...prev,
+        identityDetails: { ...prev.identityDetails, [name.split(".")[1]]: value },
+      }));
     } else if (name.startsWith("bankDetails.")) {
-      if (type === "file") {
-        setAddUserFields((prev) => ({
-          ...prev,
-          bankDetails: { ...prev.bankDetails, [name.split(".")[1]]: files ? files[0] : null },
-        }));
-      } else {
-        setAddUserFields((prev) => ({
-          ...prev,
-          bankDetails: { ...prev.bankDetails, [name.split(".")[1]]: value },
-        }));
-      }
+      setAddUserFields((prev) => ({
+        ...prev,
+        bankDetails: { ...prev.bankDetails, [name.split(".")[1]]: value },
+      }));
     } else {
       setAddUserFields((prev) => ({ ...prev, [name]: value }));
     }
@@ -216,39 +202,16 @@ export default function UsersContent() {
       return;
     }
     try {
-      const formData = new FormData();
-      // Basic fields
-      formData.append("firstName", addUserFields.firstName);
-      formData.append("lastName", addUserFields.lastName);
-      formData.append("email", addUserFields.email);
-      formData.append("mobileNumber", addUserFields.mobileNumber);
-      formData.append("password", addUserFields.password);
-      formData.append("dateOfBirth", addUserFields.dateOfBirth);
-      formData.append("referralCode", addUserFields.referralCode);
-      // Address
-      Object.entries(addUserFields.address).forEach(([key, value]) => {
-        formData.append(`address[${key}]`, value);
-      });
-      // Identity
-      formData.append("identityDetails[panNumber]", addUserFields.identityDetails.panNumber);
-      formData.append("identityDetails[aadharNumber]", addUserFields.identityDetails.aadharNumber);
-      if (addUserFields.identityDetails.panAttachment) formData.append("identityDetails[panAttachment]", addUserFields.identityDetails.panAttachment);
-      if (addUserFields.identityDetails.aadharFront) formData.append("identityDetails[aadharFront]", addUserFields.identityDetails.aadharFront);
-      if (addUserFields.identityDetails.aadharBack) formData.append("identityDetails[aadharBack]", addUserFields.identityDetails.aadharBack);
-      // Bank
-      formData.append("bankDetails[accountNumber]", addUserFields.bankDetails.accountNumber);
-      formData.append("bankDetails[ifscCode]", addUserFields.bankDetails.ifscCode);
-      formData.append("bankDetails[bankName]", addUserFields.bankDetails.bankName);
-      formData.append("bankDetails[branchName]", addUserFields.bankDetails.branchName);
-      if (addUserFields.bankDetails.proofAttachment) formData.append("bankDetails[proofAttachment]", addUserFields.bankDetails.proofAttachment);
-      // Debug: log all FormData entries
-      for (let [key, value] of formData.entries()) {
-        console.log("FormData:", key, value);
-      }
+      // Send as JSON with dateOfBirth as ISO string
+      const payload = {
+        ...addUserFields,
+        dateOfBirth: new Date(addUserFields.dateOfBirth).toISOString(),
+        referralCode: addUserFields.referralCode.trim() === "" ? null : addUserFields.referralCode,
+      };
       await axios.post(
         `/api/v1/admin/create-new-user`,
-        formData,
-        { withCredentials: true, headers: { 'Content-Type': 'multipart/form-data' } }
+        payload,
+        { withCredentials: true, headers: { 'Content-Type': 'application/json' } }
       );
       setAddUserFieldErrors({});
       setShowAddUserModal(false);
@@ -261,8 +224,8 @@ export default function UsersContent() {
         dateOfBirth: "",
         referralCode: "",
         address: { line1: "", line2: "", city: "", state: "", pincode: "", country: "" },
-        identityDetails: { panNumber: "", panAttachment: null, aadharNumber: "", aadharFront: null, aadharBack: null },
-        bankDetails: { accountNumber: "", ifscCode: "", bankName: "", branchName: "", proofAttachment: null },
+        identityDetails: { panNumber: "", panAttachment: "", aadharNumber: "", aadharFront: "", aadharBack: "" },
+        bankDetails: { accountNumber: "", ifscCode: "", bankName: "", branchName: "", proofAttachment: "" },
       });
       fetchUsers();
     } catch (error: any) {
@@ -444,20 +407,20 @@ export default function UsersContent() {
                     <Input id="identityDetails.panNumber" name="identityDetails.panNumber" value={addUserFields.identityDetails.panNumber} onChange={handleAddUserChange} placeholder="PAN Number" />
                   </div>
                   <div>
-                    <Label htmlFor="identityDetails.panAttachment">PAN Attachment*</Label>
-                    <Input id="identityDetails.panAttachment" name="identityDetails.panAttachment" type="file" accept="application/pdf,image/*" onChange={handleAddUserChange} />
+                    <Label htmlFor="identityDetails.panAttachment">PAN Attachment (AWS URL)*</Label>
+                    <Input id="identityDetails.panAttachment" name="identityDetails.panAttachment" value={addUserFields.identityDetails.panAttachment} onChange={handleAddUserChange} placeholder="https://bucket.s3.amazonaws.com/pan.pdf" />
                   </div>
                   <div>
                     <Label htmlFor="identityDetails.aadharNumber">Aadhaar Number*</Label>
                     <Input id="identityDetails.aadharNumber" name="identityDetails.aadharNumber" value={addUserFields.identityDetails.aadharNumber} onChange={handleAddUserChange} placeholder="Aadhaar Number" />
                   </div>
                   <div>
-                    <Label htmlFor="identityDetails.aadharFront">Aadhaar Front*</Label>
-                    <Input id="identityDetails.aadharFront" name="identityDetails.aadharFront" type="file" accept="application/pdf,image/*" onChange={handleAddUserChange} />
+                    <Label htmlFor="identityDetails.aadharFront">Aadhaar Front (AWS URL)*</Label>
+                    <Input id="identityDetails.aadharFront" name="identityDetails.aadharFront" value={addUserFields.identityDetails.aadharFront} onChange={handleAddUserChange} placeholder="https://bucket.s3.amazonaws.com/aadhar-front.pdf" />
                   </div>
                   <div>
-                    <Label htmlFor="identityDetails.aadharBack">Aadhaar Back*</Label>
-                    <Input id="identityDetails.aadharBack" name="identityDetails.aadharBack" type="file" accept="application/pdf,image/*" onChange={handleAddUserChange} />
+                    <Label htmlFor="identityDetails.aadharBack">Aadhaar Back (AWS URL)*</Label>
+                    <Input id="identityDetails.aadharBack" name="identityDetails.aadharBack" value={addUserFields.identityDetails.aadharBack} onChange={handleAddUserChange} placeholder="https://bucket.s3.amazonaws.com/aadhar-back.pdf" />
                   </div>
                 </div>
               )}
@@ -486,8 +449,8 @@ export default function UsersContent() {
                     <Input id="bankDetails.branchName" name="bankDetails.branchName" value={addUserFields.bankDetails.branchName} onChange={handleAddUserChange} placeholder="Branch Name" />
                   </div>
                   <div className="col-span-2">
-                    <Label htmlFor="bankDetails.proofAttachment">Proof Attachment*</Label>
-                    <Input id="bankDetails.proofAttachment" name="bankDetails.proofAttachment" type="file" accept="application/pdf,image/*" onChange={handleAddUserChange} />
+                    <Label htmlFor="bankDetails.proofAttachment">Proof Attachment (AWS URL)*</Label>
+                    <Input id="bankDetails.proofAttachment" name="bankDetails.proofAttachment" value={addUserFields.bankDetails.proofAttachment} onChange={handleAddUserChange} placeholder="https://bucket.s3.amazonaws.com/bank-proof.pdf" />
                   </div>
                 </div>
               )}
