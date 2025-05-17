@@ -547,7 +547,7 @@ export default function DashboardContent() {
                                 onClick={async () => {
                                   try {
                                     const response = await axios.post(
-                                      `/api/v1/admin/verify-user/`,
+                                      `/api/v1/admin/verify-user`,
                                       { userId: user.id, status: "approve" },
                                       { withCredentials: true }
                                     );
@@ -570,7 +570,7 @@ export default function DashboardContent() {
                                 onClick={async () => {
                                   try {
                                     const response = await axios.post(
-                                      `/api/v1/admin/verify-user/`,
+                                      `/api/v1/admin/verify-user`,
                                       { userId: user.id, status: "rejected" },
                                       { withCredentials: true }
                                     );
