@@ -625,7 +625,7 @@ export default function DashboardContent() {
                         <TableCell className="font-medium">
                           {transaction.user.email}
                         </TableCell>
-                        <TableCell>{transaction.amount}</TableCell>
+                        <TableCell>{transaction.creditAmount}</TableCell>
                         <TableCell>{transaction.method}</TableCell>
                         <TableCell>{transaction.referenceNumber}</TableCell>
                         <TableCell>
@@ -695,7 +695,7 @@ export default function DashboardContent() {
                         <TableCell className="font-medium">
                           {transaction.user.email}
                         </TableCell>
-                        <TableCell>{transaction.amount}</TableCell>
+                        <TableCell>{transaction.debitAmount}</TableCell>
                         <TableCell>
                           <Badge className="bg-yellow-100 text-yellow-800">
                             {transaction.status}
