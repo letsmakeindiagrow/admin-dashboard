@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { Loader2 } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 
 interface User {
   id: string;
@@ -47,51 +47,34 @@ interface User {
 }
 
 interface UserRegistrationForm {
-  // Basic Information
-  referralCode?: string | null;  // Optional
-  mobileNumber: string;          // Required, 10 digits
-  email: string;                 // Required, valid email format
-  password: string;              // Required
-  firstName: string;             // Required
-  lastName: string;              // Required
-  dateOfBirth: Date;            // Required
-
-  // Address Information (Optional)
+  referralCode?: string | null;
+  mobileNumber: string;
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: Date;
   address?: {
-    line1: string;              // Required if address provided
-    line2?: string;             // Optional
-    city: string;               // Required if address provided
-    pincode: string;            // Required if address provided, 6 digits
+    line1: string;
+    line2?: string;
+    city: string;
+    pincode: string;
   };
-
-  // Identity Details (Optional)
   identityDetails?: {
-    panNumber: string;          // Required if identity provided, 10 characters
-    panAttachment: string;      // Required if identity provided, URL
-    aadharNumber: string;       // Required if identity provided, 12 digits
-    aadharFront: string;        // Required if identity provided, URL
-    aadharBack: string;         // Required if identity provided, URL
+    panNumber: string;
+    panAttachment: string;
+    aadharNumber: string;
+    aadharFront: string;
+    aadharBack: string;
   };
-
-  // Bank Details (Optional)
   bankDetails?: {
-    accountNumber: string;      // Required if bank provided, min 8 digits
-    ifscCode: string;          // Required if bank provided, 11 characters
-    branchName: string;         // Required if bank provided
-    proofAttachment: string;    // Required if bank provided, URL
+    accountNumber: string;
+    ifscCode: string;
+    branchName: string;
+    proofAttachment: string;
   };
 }
 
-// Helper validation functions
-const validateEmail = (email: string) =>
-  /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email);
-const validateMobile = (mobile: string) => /^\d{10}$/.test(mobile);
-const validatePincode = (pincode: string) => /^\d{6}$/.test(pincode);
-const validatePAN = (pan: string) => /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(pan);
-const validateAadhar = (aadhar: string) => /^\d{12}$/.test(aadhar);
-const validateIFSC = (ifsc: string) => /^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifsc);
-
-// Add interface for file upload state
 interface FileUploadState {
   isUploading: boolean;
   progress: number;
@@ -123,32 +106,12 @@ export default function UsersContent() {
     password: "",
     dateOfBirth: new Date(),
     referralCode: null,
-    address: {
-      line1: "",
-      line2: "",
-      city: "",
-      pincode: "",
-    },
-    identityDetails: {
-      panNumber: "",
-      panAttachment: "",
-      aadharNumber: "",
-      aadharFront: "",
-      aadharBack: "",
-    },
-    bankDetails: {
-      accountNumber: "",
-      ifscCode: "",
-      branchName: "",
-      proofAttachment: "",
-    },
   });
   const [showAddress, setShowAddress] = useState(false);
   const [showIdentity, setShowIdentity] = useState(false);
   const [showBank, setShowBank] = useState(false);
   const [addUserFieldErrors, setAddUserFieldErrors] = useState<any>({});
 
-  // Update initial state
   const [fileUploadStates, setFileUploadStates] = useState<FileUploadStates>({
     panAttachment: { isUploading: false, progress: 0, error: null, file: null, url: "" },
     aadharFront: { isUploading: false, progress: 0, error: null, file: null, url: "" },
@@ -158,14 +121,11 @@ export default function UsersContent() {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get(`/api/v1/admin/get-users`, {
+      const response = await axios.get('/api/v1/admin/get-users', {
         withCredentials: true,
       });
       if (response.status === 200) {
-        console.log("Users data:", response.data.users);
         setUsers(response.data.users || []);
-      } else {
-        console.error("Failed to fetch users:", response.status, response.data);
       }
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -179,27 +139,16 @@ export default function UsersContent() {
   }, []);
 
   const filteredUsers = users.filter((user) => {
-    const matchesSearch = (user.email?.toLowerCase() || "").includes(
-      searchQuery.toLowerCase()
-    );
-
+    const matchesSearch = user.email?.toLowerCase().includes(searchQuery.toLowerCase());
     if (filter === "all") return matchesSearch;
-    if (filter === "verified")
-      return matchesSearch && user.verificationState === "VERIFIED";
-    if (filter === "pending")
-      return matchesSearch && user.verificationState === "PENDING";
-    if (filter === "rejected")
-      return matchesSearch && user.verificationState === "REJECTED";
-
-    return matchesSearch;
+    return matchesSearch && user.verificationState === filter.toUpperCase();
   });
 
-  // Update file upload function
   const uploadFile = async (file: File, documentType: keyof FileUploadStates) => {
-    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB max size
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
     if (file.size > MAX_FILE_SIZE) {
-      setFileUploadStates((prev: FileUploadStates) => ({
+      setFileUploadStates(prev => ({
         ...prev,
         [documentType]: {
           ...prev[documentType],
@@ -216,7 +165,7 @@ export default function UsersContent() {
     formData.append("documentType", documentType);
 
     try {
-      setFileUploadStates((prev: FileUploadStates) => ({
+      setFileUploadStates(prev => ({
         ...prev,
         [documentType]: {
           ...prev[documentType],
@@ -227,7 +176,7 @@ export default function UsersContent() {
         }
       }));
 
-      const response = await axios.post(`/api/v1/documents/upload`, formData, {
+      const response = await axios.post('/api/v1/documents/upload', formData, {
         withCredentials: true,
         headers: {
           "Content-Type": "multipart/form-data",
@@ -236,279 +185,205 @@ export default function UsersContent() {
           const progress = progressEvent.total
             ? Math.round((progressEvent.loaded * 100) / progressEvent.total)
             : 0;
-          setFileUploadStates((prev: FileUploadStates) => ({
+          setFileUploadStates(prev => ({
             ...prev,
             [documentType]: {
               ...prev[documentType],
-              progress,
-              file: prev[documentType].file,
-              url: prev[documentType].url
+              progress
             }
           }));
         },
       });
 
-      // Update the form data with the URL
       const url = response.data.url;
-      setFileUploadStates((prev: FileUploadStates) => ({
+      setFileUploadStates(prev => ({
         ...prev,
         [documentType]: {
           ...prev[documentType],
           url,
-          file: prev[documentType].file
+          isUploading: false,
+          error: null
         }
       }));
 
-      if (documentType === "panAttachment") {
-        setAddUserFields(prev => ({
-          ...prev,
-          identityDetails: {
-            ...prev.identityDetails!,
-            panAttachment: url
-          }
-        }));
-      } else if (documentType === "aadharFront") {
-        setAddUserFields(prev => ({
-          ...prev,
-          identityDetails: {
-            ...prev.identityDetails!,
-            aadharFront: url
-          }
-        }));
-      } else if (documentType === "aadharBack") {
-        setAddUserFields(prev => ({
-          ...prev,
-          identityDetails: {
-            ...prev.identityDetails!,
-            aadharBack: url
-          }
-        }));
-      } else if (documentType === "bankProof") {
-        setAddUserFields(prev => ({
-          ...prev,
-          bankDetails: {
-            ...prev.bankDetails!,
-            proofAttachment: url
-          }
-        }));
-      }
+      // Update the corresponding form field
+      setAddUserFields(prev => {
+        const newFields = {...prev};
+        if (documentType === "panAttachment" && newFields.identityDetails) {
+          newFields.identityDetails.panAttachment = url;
+        } else if (documentType === "aadharFront" && newFields.identityDetails) {
+          newFields.identityDetails.aadharFront = url;
+        } else if (documentType === "aadharBack" && newFields.identityDetails) {
+          newFields.identityDetails.aadharBack = url;
+        } else if (documentType === "bankProof" && newFields.bankDetails) {
+          newFields.bankDetails.proofAttachment = url;
+        }
+        return newFields;
+      });
 
       return url;
     } catch (error) {
-      console.error(`Error uploading ${documentType}:`, error);
-      setFileUploadStates((prev: FileUploadStates) => ({
+      setFileUploadStates(prev => ({
         ...prev,
         [documentType]: {
           ...prev[documentType],
           error: "Failed to upload file. Please try again.",
-          file: null,
-          url: ""
+          isUploading: false
         }
       }));
       return null;
-    } finally {
-      setFileUploadStates((prev: FileUploadStates) => ({
-        ...prev,
-        [documentType]: {
-          ...prev[documentType],
-          isUploading: false,
-          progress: 0,
-          file: prev[documentType].file,
-          url: prev[documentType].url
-        }
-      }));
     }
   };
 
-  // Update handleAddUserChange to use the new file upload function
   const handleAddUserChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, files } = e.target;
     
     if (type === 'file' && files && files[0]) {
-      const file = files[0];
       const documentType = name.split(".")[1] as keyof FileUploadStates;
-      uploadFile(file, documentType);
+      uploadFile(files[0], documentType);
     } else {
-      if (name.startsWith("address.")) {
-        const field = name.split(".")[1];
-        setAddUserFields((prev) => ({
-          ...prev,
-          address: {
-            ...prev.address!,
-            [field]: value,
-          },
-        }));
-      } else if (name.startsWith("identityDetails.")) {
-        const field = name.split(".")[1];
-        setAddUserFields((prev) => ({
-          ...prev,
-          identityDetails: {
-            ...prev.identityDetails!,
-            [field]: value,
-          },
-        }));
-      } else if (name.startsWith("bankDetails.")) {
-        const field = name.split(".")[1];
-        setAddUserFields((prev) => ({
-          ...prev,
-          bankDetails: {
-            ...prev.bankDetails!,
-            [field]: value,
-          },
-        }));
-      } else if (name === "dateOfBirth") {
-        setAddUserFields((prev) => ({
-          ...prev,
-          [name]: new Date(value),
-        }));
-      } else {
-        setAddUserFields((prev) => ({ ...prev, [name]: value }));
-      }
+      setAddUserFields(prev => {
+        const newFields = {...prev};
+        const [parent, child] = name.split(".");
+        
+        if (parent === "address") {
+          newFields.address = {
+            ...newFields.address || { line1: "", city: "", pincode: "" },
+            [child]: value
+          };
+        } else if (parent === "identityDetails") {
+          newFields.identityDetails = {
+            ...newFields.identityDetails || { 
+              panNumber: "", panAttachment: "", 
+              aadharNumber: "", aadharFront: "", aadharBack: "" 
+            },
+            [child]: value
+          };
+        } else if (parent === "bankDetails") {
+          newFields.bankDetails = {
+            ...newFields.bankDetails || {
+              accountNumber: "", ifscCode: "", 
+              branchName: "", proofAttachment: ""
+            },
+            [child]: value
+          };
+        } else if (name === "dateOfBirth") {
+          newFields.dateOfBirth = new Date(value);
+        } else {
+          newFields[name as keyof UserRegistrationForm] = value;
+        }
+        
+        return newFields;
+      });
     }
   };
 
-  const handleAddUser = async () => {
-    console.log("Submitting", addUserFields);
-    setAddUserError(null);
-    setAddUserLoading(true);
-    setAddUserFieldErrors({});
+  const validateForm = () => {
     const errors: any = {};
+    const requiredFields = [
+      'firstName', 'lastName', 'email', 'mobileNumber', 'password', 'dateOfBirth'
+    ];
 
-    // Validate required fields and schema
-    if (!addUserFields.firstName.trim()) errors.firstName = "First name is required";
-    if (!addUserFields.lastName.trim()) errors.lastName = "Last name is required";
-    if (!addUserFields.email.trim()) errors.email = "Email is required";
-    else if (!validateEmail(addUserFields.email)) errors.email = "Invalid email format";
-    if (!addUserFields.mobileNumber.trim()) errors.mobileNumber = "Mobile number is required";
-    else if (!validateMobile(addUserFields.mobileNumber)) errors.mobileNumber = "Mobile number must be 10 digits";
-    if (!addUserFields.password.trim()) errors.password = "Password is required";
-    if (!addUserFields.dateOfBirth) errors.dateOfBirth = "Date of birth is required";
+    // Basic field validation
+    requiredFields.forEach(field => {
+      if (!addUserFields[field as keyof UserRegistrationForm]) {
+        errors[field] = `${field.replace(/([A-Z])/g, ' $1').trim()} is required`;
+      }
+    });
 
-    // Address validation
-    if (addUserFields.address) {
-      if (!addUserFields.address.line1.trim()) errors["address.line1"] = "Address Line 1 is required";
-      if (!addUserFields.address.city.trim()) errors["address.city"] = "City is required";
-      if (!addUserFields.address.pincode.trim()) errors["address.pincode"] = "Pincode is required";
-      else if (!validatePincode(addUserFields.address.pincode)) errors["address.pincode"] = "Pincode must be 6 digits";
+    // Email format validation
+    if (addUserFields.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addUserFields.email)) {
+      errors.email = "Invalid email format";
     }
 
-    // Identity validation
-    if (addUserFields.identityDetails) {
-      if (!addUserFields.identityDetails.panNumber.trim()) errors["identityDetails.panNumber"] = "PAN is required";
-      else if (!validatePAN(addUserFields.identityDetails.panNumber)) errors["identityDetails.panNumber"] = "PAN must be 10 characters (ABCDE1234F)";
-      if (!addUserFields.identityDetails.aadharNumber.trim()) errors["identityDetails.aadharNumber"] = "Aadhar number is required";
-      else if (!validateAadhar(addUserFields.identityDetails.aadharNumber)) errors["identityDetails.aadharNumber"] = "Aadhar number must be 12 digits";
-      // Check if files have been uploaded successfully by checking their URLs
-      if (!fileUploadStates.panAttachment.url) errors["identityDetails.panAttachment"] = "PAN Attachment is required";
-      if (!fileUploadStates.aadharFront.url) errors["identityDetails.aadharFront"] = "Aadhaar Front is required";
-      if (!fileUploadStates.aadharBack.url) errors["identityDetails.aadharBack"] = "Aadhaar Back is required";
+    // Mobile number validation
+    if (addUserFields.mobileNumber && !/^\d{10}$/.test(addUserFields.mobileNumber)) {
+      errors.mobileNumber = "Mobile number must be 10 digits";
     }
 
-    // Bank validation
-    if (addUserFields.bankDetails) {
-      if (!addUserFields.bankDetails.accountNumber.trim()) errors["bankDetails.accountNumber"] = "Account number is required";
-      else if (addUserFields.bankDetails.accountNumber.length < 8) errors["bankDetails.accountNumber"] = "Account number must be at least 8 digits";
-      if (!addUserFields.bankDetails.ifscCode.trim()) errors["bankDetails.ifscCode"] = "IFSC Code is required";
-      else if (!validateIFSC(addUserFields.bankDetails.ifscCode)) errors["bankDetails.ifscCode"] = "Invalid IFSC Code";
-      if (!addUserFields.bankDetails.branchName.trim()) errors["bankDetails.branchName"] = "Branch name is required";
-      
-      // Check both the URL in fileUploadStates and the form data
-      const hasBankProof = Boolean(fileUploadStates.bankProof.url) || Boolean(addUserFields.bankDetails.proofAttachment);
-      if (!hasBankProof) {
-        errors["bankDetails.proofAttachment"] = "Proof Attachment is required";
+    // Address validation if shown
+    if (showAddress) {
+      if (!addUserFields.address?.line1) errors["address.line1"] = "Address line 1 is required";
+      if (!addUserFields.address?.city) errors["address.city"] = "City is required";
+      if (!addUserFields.address?.pincode) errors["address.pincode"] = "Pincode is required";
+      else if (!/^\d{6}$/.test(addUserFields.address.pincode)) {
+        errors["address.pincode"] = "Pincode must be 6 digits";
       }
     }
 
+    // Identity validation if shown
+    if (showIdentity) {
+      if (!addUserFields.identityDetails?.panNumber) {
+        errors["identityDetails.panNumber"] = "PAN number is required";
+      }
+      if (!addUserFields.identityDetails?.aadharNumber) {
+        errors["identityDetails.aadharNumber"] = "Aadhaar number is required";
+      }
+      if (!fileUploadStates.panAttachment.url) {
+        errors["identityDetails.panAttachment"] = "PAN attachment is required";
+      }
+      if (!fileUploadStates.aadharFront.url) {
+        errors["identityDetails.aadharFront"] = "Aadhaar front is required";
+      }
+      if (!fileUploadStates.aadharBack.url) {
+        errors["identityDetails.aadharBack"] = "Aadhaar back is required";
+      }
+    }
+
+    // Bank validation if shown
+    if (showBank) {
+      if (!addUserFields.bankDetails?.accountNumber) {
+        errors["bankDetails.accountNumber"] = "Account number is required";
+      }
+      if (!addUserFields.bankDetails?.ifscCode) {
+        errors["bankDetails.ifscCode"] = "IFSC code is required";
+      }
+      if (!addUserFields.bankDetails?.branchName) {
+        errors["bankDetails.branchName"] = "Branch name is required";
+      }
+      if (!fileUploadStates.bankProof.url) {
+        errors["bankDetails.proofAttachment"] = "Bank proof is required";
+      }
+    }
+
+    return errors;
+  };
+
+  const handleAddUser = async () => {
+    setAddUserError(null);
+    setAddUserLoading(true);
+    
+    // Check for any ongoing uploads
+    const uploadsInProgress = Object.values(fileUploadStates).some(
+      state => state.isUploading
+    );
+
+    if (uploadsInProgress) {
+      setAddUserError("Please wait for all file uploads to complete");
+      setAddUserLoading(false);
+      return;
+    }
+
+    const errors = validateForm();
     if (Object.keys(errors).length > 0) {
       setAddUserFieldErrors(errors);
       setAddUserLoading(false);
-      const errorSummary = Object.values(errors).join("\n");
-      alert(`Please fix the following errors before submitting:\n${errorSummary}`);
       return;
     }
 
     try {
-      // Update form data with URLs from file upload states
-      const formDataToSubmit = {
-        ...addUserFields,
-        identityDetails: addUserFields.identityDetails ? {
-          ...addUserFields.identityDetails,
-          panAttachment: fileUploadStates.panAttachment.url,
-          aadharFront: fileUploadStates.aadharFront.url,
-          aadharBack: fileUploadStates.aadharBack.url,
-        } : undefined,
-        bankDetails: addUserFields.bankDetails ? {
-          ...addUserFields.bankDetails,
-          proofAttachment: fileUploadStates.bankProof.url,
-        } : undefined,
-      };
-
-      const response = await axios.post(`/api/v1/admin/create-user`, formDataToSubmit, {
+      const response = await axios.post('/api/v1/admin/create-user', addUserFields, {
         withCredentials: true,
       });
 
       if (response.status === 201) {
-        setAddUserFieldErrors({});
         setShowAddUserModal(false);
-        setAddUserFields({
-          firstName: "",
-          lastName: "",
-          email: "",
-          mobileNumber: "",
-          password: "",
-          dateOfBirth: new Date(),
-          referralCode: null,
-          address: {
-            line1: "",
-            line2: "",
-            city: "",
-            pincode: "",
-          },
-          identityDetails: {
-            panNumber: "",
-            panAttachment: "",
-            aadharNumber: "",
-            aadharFront: "",
-            aadharBack: "",
-          },
-          bankDetails: {
-            accountNumber: "",
-            ifscCode: "",
-            branchName: "",
-            proofAttachment: "",
-          },
-        });
-        // Reset file upload states
-        setFileUploadStates({
-          panAttachment: { isUploading: false, progress: 0, error: null, file: null, url: "" },
-          aadharFront: { isUploading: false, progress: 0, error: null, file: null, url: "" },
-          aadharBack: { isUploading: false, progress: 0, error: null, file: null, url: "" },
-          bankProof: { isUploading: false, progress: 0, error: null, file: null, url: "" },
-        });
+        resetForm();
         fetchUsers();
       }
     } catch (error: any) {
-      // Handle different error types
       if (error.response) {
-        switch (error.response.status) {
-          case 400:
-            if (error.response.data.errors) {
-              // Validation errors
-              setAddUserFieldErrors(error.response.data.errors);
-            } else if (error.response.data.message.includes("already exists")) {
-              // User exists error
-              setAddUserError("A user with this email or mobile number already exists");
-            } else if (error.response.data.message.includes("File upload error")) {
-              // File upload error
-              setAddUserError(`File upload error: ${error.response.data.error}`);
-            }
-            break;
-          case 500:
-            setAddUserError("Server error. Please try again later.");
-            break;
-          default:
-            setAddUserError(error.response.data.message || "Error creating user.");
-        }
+        setAddUserError(error.response.data.message || "Error creating user");
       } else {
         setAddUserError("Network error. Please check your connection.");
       }
@@ -517,7 +392,28 @@ export default function UsersContent() {
     }
   };
 
-  // Add LoadingOverlay component
+  const resetForm = () => {
+    setAddUserFields({
+      firstName: "",
+      lastName: "",
+      email: "",
+      mobileNumber: "",
+      password: "",
+      dateOfBirth: new Date(),
+      referralCode: null,
+    });
+    setFileUploadStates({
+      panAttachment: { isUploading: false, progress: 0, error: null, file: null, url: "" },
+      aadharFront: { isUploading: false, progress: 0, error: null, file: null, url: "" },
+      aadharBack: { isUploading: false, progress: 0, error: null, file: null, url: "" },
+      bankProof: { isUploading: false, progress: 0, error: null, file: null, url: "" },
+    });
+    setAddUserFieldErrors({});
+    setShowAddress(false);
+    setShowIdentity(false);
+    setShowBank(false);
+  };
+
   const LoadingOverlay = () => (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white p-8 rounded-xl shadow-2xl flex flex-col items-center animate-fade-in">
@@ -620,13 +516,14 @@ export default function UsersContent() {
           </Table>
         </CardContent>
       </Card>
+
       <Dialog open={showAddUserModal} onOpenChange={setShowAddUserModal}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add New User</DialogTitle>
           </DialogHeader>
-          <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-2">
-            <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="firstName">First Name*</Label>
                 <Input
@@ -634,10 +531,9 @@ export default function UsersContent() {
                   name="firstName"
                   value={addUserFields.firstName}
                   onChange={handleAddUserChange}
-                  placeholder="First Name"
                 />
                 {addUserFieldErrors.firstName && (
-                  <div className="text-red-600 text-xs">
+                  <div className="text-red-600 text-xs mt-1">
                     {addUserFieldErrors.firstName}
                   </div>
                 )}
@@ -649,10 +545,9 @@ export default function UsersContent() {
                   name="lastName"
                   value={addUserFields.lastName}
                   onChange={handleAddUserChange}
-                  placeholder="Last Name"
                 />
                 {addUserFieldErrors.lastName && (
-                  <div className="text-red-600 text-xs">
+                  <div className="text-red-600 text-xs mt-1">
                     {addUserFieldErrors.lastName}
                   </div>
                 )}
@@ -662,13 +557,12 @@ export default function UsersContent() {
                 <Input
                   id="email"
                   name="email"
+                  type="email"
                   value={addUserFields.email}
                   onChange={handleAddUserChange}
-                  placeholder="Email"
-                  type="email"
                 />
                 {addUserFieldErrors.email && (
-                  <div className="text-red-600 text-xs">
+                  <div className="text-red-600 text-xs mt-1">
                     {addUserFieldErrors.email}
                   </div>
                 )}
@@ -680,13 +574,9 @@ export default function UsersContent() {
                   name="mobileNumber"
                   value={addUserFields.mobileNumber}
                   onChange={handleAddUserChange}
-                  placeholder="Mobile Number"
                 />
-                <div className="text-xs text-gray-500">
-                  10 digits, e.g. 9876543210
-                </div>
                 {addUserFieldErrors.mobileNumber && (
-                  <div className="text-red-600 text-xs">
+                  <div className="text-red-600 text-xs mt-1">
                     {addUserFieldErrors.mobileNumber}
                   </div>
                 )}
@@ -696,13 +586,12 @@ export default function UsersContent() {
                 <Input
                   id="password"
                   name="password"
+                  type="password"
                   value={addUserFields.password}
                   onChange={handleAddUserChange}
-                  placeholder="Password"
-                  type="password"
                 />
                 {addUserFieldErrors.password && (
-                  <div className="text-red-600 text-xs">
+                  <div className="text-red-600 text-xs mt-1">
                     {addUserFieldErrors.password}
                   </div>
                 )}
@@ -712,119 +601,120 @@ export default function UsersContent() {
                 <Input
                   id="dateOfBirth"
                   name="dateOfBirth"
+                  type="date"
                   value={addUserFields.dateOfBirth.toISOString().split('T')[0]}
                   onChange={handleAddUserChange}
-                  placeholder="YYYY-MM-DD"
-                  type="date"
                 />
                 {addUserFieldErrors.dateOfBirth && (
-                  <div className="text-red-600 text-xs">
+                  <div className="text-red-600 text-xs mt-1">
                     {addUserFieldErrors.dateOfBirth}
                   </div>
                 )}
               </div>
               <div className="col-span-2">
-                <Label htmlFor="referralCode">Referral Code</Label>
+                <Label htmlFor="referralCode">Referral Code (Optional)</Label>
                 <Input
                   id="referralCode"
                   name="referralCode"
                   value={addUserFields.referralCode || ''}
                   onChange={handleAddUserChange}
-                  placeholder="Referral Code (optional)"
                 />
               </div>
             </div>
+
             {/* Address Section */}
             <div>
               <button
                 type="button"
-                className="flex items-center gap-1 text-blue-600 mt-2"
-                onClick={() => setShowAddress((v) => !v)}
+                className="flex items-center gap-1 text-blue-600"
+                onClick={() => setShowAddress(!showAddress)}
               >
-                Address{" "}
-                {showAddress ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
+                Address {showAddress ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
               </button>
               {showAddress && (
-                <div className="grid grid-cols-2 gap-2 mt-2 bg-gray-50 p-2 rounded">
+                <div className="grid grid-cols-2 gap-4 mt-2 bg-gray-50 p-4 rounded">
                   <div>
                     <Label htmlFor="address.line1">Address Line 1*</Label>
                     <Input
                       id="address.line1"
                       name="address.line1"
-                      value={addUserFields.address?.line1}
+                      value={addUserFields.address?.line1 || ''}
                       onChange={handleAddUserChange}
-                      placeholder="Line 1"
                     />
+                    {addUserFieldErrors["address.line1"] && (
+                      <div className="text-red-600 text-xs mt-1">
+                        {addUserFieldErrors["address.line1"]}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="address.line2">Address Line 2</Label>
                     <Input
                       id="address.line2"
                       name="address.line2"
-                      value={addUserFields.address?.line2}
+                      value={addUserFields.address?.line2 || ''}
                       onChange={handleAddUserChange}
-                      placeholder="Line 2"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="address.city">City</Label>
+                    <Label htmlFor="address.city">City*</Label>
                     <Input
                       id="address.city"
                       name="address.city"
-                      value={addUserFields.address?.city}
+                      value={addUserFields.address?.city || ''}
                       onChange={handleAddUserChange}
-                      placeholder="City"
                     />
+                    {addUserFieldErrors["address.city"] && (
+                      <div className="text-red-600 text-xs mt-1">
+                        {addUserFieldErrors["address.city"]}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="address.pincode">Pincode*</Label>
                     <Input
                       id="address.pincode"
                       name="address.pincode"
-                      value={addUserFields.address?.pincode}
+                      value={addUserFields.address?.pincode || ''}
                       onChange={handleAddUserChange}
-                      placeholder="Pincode"
                     />
+                    {addUserFieldErrors["address.pincode"] && (
+                      <div className="text-red-600 text-xs mt-1">
+                        {addUserFieldErrors["address.pincode"]}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
             </div>
+
             {/* Identity Details Section */}
             <div>
               <button
                 type="button"
-                className="flex items-center gap-1 text-blue-600 mt-2"
-                onClick={() => setShowIdentity((v) => !v)}
+                className="flex items-center gap-1 text-blue-600"
+                onClick={() => setShowIdentity(!showIdentity)}
               >
-                Identity Details{" "}
-                {showIdentity ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
+                Identity Details {showIdentity ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
               </button>
               {showIdentity && (
-                <div className="grid grid-cols-2 gap-2 mt-2 bg-gray-50 p-2 rounded">
+                <div className="grid grid-cols-2 gap-4 mt-2 bg-gray-50 p-4 rounded">
                   <div>
-                    <Label htmlFor="identityDetails.panNumber">
-                      PAN Number
-                    </Label>
+                    <Label htmlFor="identityDetails.panNumber">PAN Number*</Label>
                     <Input
                       id="identityDetails.panNumber"
                       name="identityDetails.panNumber"
-                      value={addUserFields.identityDetails?.panNumber}
+                      value={addUserFields.identityDetails?.panNumber || ''}
                       onChange={handleAddUserChange}
-                      placeholder="PAN Number"
                     />
+                    {addUserFieldErrors["identityDetails.panNumber"] && (
+                      <div className="text-red-600 text-xs mt-1">
+                        {addUserFieldErrors["identityDetails.panNumber"]}
+                      </div>
+                    )}
                   </div>
                   <div>
-                    <Label htmlFor="identityDetails.panAttachment">
-                      PAN Attachment*
-                    </Label>
+                    <Label htmlFor="identityDetails.panAttachment">PAN Attachment*</Label>
                     <Input
                       id="identityDetails.panAttachment"
                       name="identityDetails.panAttachment"
@@ -833,13 +723,13 @@ export default function UsersContent() {
                       onChange={handleAddUserChange}
                     />
                     <div className="text-xs text-gray-500 mt-1">
-                      Max size: 5MB. Allowed formats: PDF, JPEG, PNG
+                      Max 5MB (PDF, JPG, PNG)
                     </div>
                     {fileUploadStates.panAttachment.isUploading && (
                       <div className="mt-2">
                         <div className="h-2 bg-gray-200 rounded-full">
                           <div
-                            className="h-2 bg-[#00ADEF] rounded-full transition-all duration-300"
+                            className="h-2 bg-blue-500 rounded-full"
                             style={{ width: `${fileUploadStates.panAttachment.progress}%` }}
                           />
                         </div>
@@ -848,28 +738,40 @@ export default function UsersContent() {
                         </div>
                       </div>
                     )}
+                    {fileUploadStates.panAttachment.url && (
+                      <div className="flex items-center text-green-600 text-xs mt-1">
+                        <CheckCircle2 className="h-4 w-4 mr-1" />
+                        File uploaded successfully
+                      </div>
+                    )}
                     {fileUploadStates.panAttachment.error && (
-                      <div className="text-red-600 text-xs mt-1">
+                      <div className="flex items-center text-red-600 text-xs mt-1">
+                        <AlertCircle className="h-4 w-4 mr-1" />
                         {fileUploadStates.panAttachment.error}
+                      </div>
+                    )}
+                    {addUserFieldErrors["identityDetails.panAttachment"] && (
+                      <div className="text-red-600 text-xs mt-1">
+                        {addUserFieldErrors["identityDetails.panAttachment"]}
                       </div>
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="identityDetails.aadharNumber">
-                      Aadhaar Number*
-                    </Label>
+                    <Label htmlFor="identityDetails.aadharNumber">Aadhaar Number*</Label>
                     <Input
                       id="identityDetails.aadharNumber"
                       name="identityDetails.aadharNumber"
-                      value={addUserFields.identityDetails?.aadharNumber}
+                      value={addUserFields.identityDetails?.aadharNumber || ''}
                       onChange={handleAddUserChange}
-                      placeholder="Aadhaar Number"
                     />
+                    {addUserFieldErrors["identityDetails.aadharNumber"] && (
+                      <div className="text-red-600 text-xs mt-1">
+                        {addUserFieldErrors["identityDetails.aadharNumber"]}
+                      </div>
+                    )}
                   </div>
                   <div>
-                    <Label htmlFor="identityDetails.aadharFront">
-                      Aadhaar Front*
-                    </Label>
+                    <Label htmlFor="identityDetails.aadharFront">Aadhaar Front*</Label>
                     <Input
                       id="identityDetails.aadharFront"
                       name="identityDetails.aadharFront"
@@ -878,13 +780,13 @@ export default function UsersContent() {
                       onChange={handleAddUserChange}
                     />
                     <div className="text-xs text-gray-500 mt-1">
-                      Max size: 5MB. Allowed formats: PDF, JPEG, PNG
+                      Max 5MB (PDF, JPG, PNG)
                     </div>
                     {fileUploadStates.aadharFront.isUploading && (
                       <div className="mt-2">
                         <div className="h-2 bg-gray-200 rounded-full">
                           <div
-                            className="h-2 bg-[#00ADEF] rounded-full transition-all duration-300"
+                            className="h-2 bg-blue-500 rounded-full"
                             style={{ width: `${fileUploadStates.aadharFront.progress}%` }}
                           />
                         </div>
@@ -893,16 +795,26 @@ export default function UsersContent() {
                         </div>
                       </div>
                     )}
+                    {fileUploadStates.aadharFront.url && (
+                      <div className="flex items-center text-green-600 text-xs mt-1">
+                        <CheckCircle2 className="h-4 w-4 mr-1" />
+                        File uploaded successfully
+                      </div>
+                    )}
                     {fileUploadStates.aadharFront.error && (
-                      <div className="text-red-600 text-xs mt-1">
+                      <div className="flex items-center text-red-600 text-xs mt-1">
+                        <AlertCircle className="h-4 w-4 mr-1" />
                         {fileUploadStates.aadharFront.error}
+                      </div>
+                    )}
+                    {addUserFieldErrors["identityDetails.aadharFront"] && (
+                      <div className="text-red-600 text-xs mt-1">
+                        {addUserFieldErrors["identityDetails.aadharFront"]}
                       </div>
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="identityDetails.aadharBack">
-                      Aadhaar Back*
-                    </Label>
+                    <Label htmlFor="identityDetails.aadharBack">Aadhaar Back*</Label>
                     <Input
                       id="identityDetails.aadharBack"
                       name="identityDetails.aadharBack"
@@ -911,13 +823,13 @@ export default function UsersContent() {
                       onChange={handleAddUserChange}
                     />
                     <div className="text-xs text-gray-500 mt-1">
-                      Max size: 5MB. Allowed formats: PDF, JPEG, PNG
+                      Max 5MB (PDF, JPG, PNG)
                     </div>
                     {fileUploadStates.aadharBack.isUploading && (
                       <div className="mt-2">
                         <div className="h-2 bg-gray-200 rounded-full">
                           <div
-                            className="h-2 bg-[#00ADEF] rounded-full transition-all duration-300"
+                            className="h-2 bg-blue-500 rounded-full"
                             style={{ width: `${fileUploadStates.aadharBack.progress}%` }}
                           />
                         </div>
@@ -926,67 +838,83 @@ export default function UsersContent() {
                         </div>
                       </div>
                     )}
+                    {fileUploadStates.aadharBack.url && (
+                      <div className="flex items-center text-green-600 text-xs mt-1">
+                        <CheckCircle2 className="h-4 w-4 mr-1" />
+                        File uploaded successfully
+                      </div>
+                    )}
                     {fileUploadStates.aadharBack.error && (
-                      <div className="text-red-600 text-xs mt-1">
+                      <div className="flex items-center text-red-600 text-xs mt-1">
+                        <AlertCircle className="h-4 w-4 mr-1" />
                         {fileUploadStates.aadharBack.error}
+                      </div>
+                    )}
+                    {addUserFieldErrors["identityDetails.aadharBack"] && (
+                      <div className="text-red-600 text-xs mt-1">
+                        {addUserFieldErrors["identityDetails.aadharBack"]}
                       </div>
                     )}
                   </div>
                 </div>
               )}
             </div>
+
             {/* Bank Details Section */}
             <div>
               <button
                 type="button"
-                className="flex items-center gap-1 text-blue-600 mt-2"
-                onClick={() => setShowBank((v) => !v)}
+                className="flex items-center gap-1 text-blue-600"
+                onClick={() => setShowBank(!showBank)}
               >
-                Bank Details{" "}
-                {showBank ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
+                Bank Details {showBank ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
               </button>
               {showBank && (
-                <div className="grid grid-cols-2 gap-2 mt-2 bg-gray-50 p-2 rounded">
+                <div className="grid grid-cols-2 gap-4 mt-2 bg-gray-50 p-4 rounded">
                   <div>
-                    <Label htmlFor="bankDetails.accountNumber">
-                      Account Number
-                    </Label>
+                    <Label htmlFor="bankDetails.accountNumber">Account Number*</Label>
                     <Input
                       id="bankDetails.accountNumber"
                       name="bankDetails.accountNumber"
-                      value={addUserFields.bankDetails?.accountNumber}
+                      value={addUserFields.bankDetails?.accountNumber || ''}
                       onChange={handleAddUserChange}
-                      placeholder="Account Number"
                     />
+                    {addUserFieldErrors["bankDetails.accountNumber"] && (
+                      <div className="text-red-600 text-xs mt-1">
+                        {addUserFieldErrors["bankDetails.accountNumber"]}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="bankDetails.ifscCode">IFSC Code*</Label>
                     <Input
                       id="bankDetails.ifscCode"
                       name="bankDetails.ifscCode"
-                      value={addUserFields.bankDetails?.ifscCode}
+                      value={addUserFields.bankDetails?.ifscCode || ''}
                       onChange={handleAddUserChange}
-                      placeholder="IFSC Code"
                     />
+                    {addUserFieldErrors["bankDetails.ifscCode"] && (
+                      <div className="text-red-600 text-xs mt-1">
+                        {addUserFieldErrors["bankDetails.ifscCode"]}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="bankDetails.branchName">Branch Name*</Label>
                     <Input
                       id="bankDetails.branchName"
                       name="bankDetails.branchName"
-                      value={addUserFields.bankDetails?.branchName}
+                      value={addUserFields.bankDetails?.branchName || ''}
                       onChange={handleAddUserChange}
-                      placeholder="Branch Name"
                     />
+                    {addUserFieldErrors["bankDetails.branchName"] && (
+                      <div className="text-red-600 text-xs mt-1">
+                        {addUserFieldErrors["bankDetails.branchName"]}
+                      </div>
+                    )}
                   </div>
-                  <div className="col-span-2">
-                    <Label htmlFor="bankDetails.proofAttachment">
-                      Proof Attachment*
-                    </Label>
+                  <div>
+                    <Label htmlFor="bankDetails.proofAttachment">Proof Attachment*</Label>
                     <Input
                       id="bankDetails.proofAttachment"
                       name="bankDetails.proofAttachment"
@@ -995,13 +923,13 @@ export default function UsersContent() {
                       onChange={handleAddUserChange}
                     />
                     <div className="text-xs text-gray-500 mt-1">
-                      Max size: 5MB. Allowed formats: PDF, JPEG, PNG
+                      Max 5MB (PDF, JPG, PNG)
                     </div>
                     {fileUploadStates.bankProof.isUploading && (
                       <div className="mt-2">
                         <div className="h-2 bg-gray-200 rounded-full">
                           <div
-                            className="h-2 bg-[#00ADEF] rounded-full transition-all duration-300"
+                            className="h-2 bg-blue-500 rounded-full"
                             style={{ width: `${fileUploadStates.bankProof.progress}%` }}
                           />
                         </div>
@@ -1010,9 +938,21 @@ export default function UsersContent() {
                         </div>
                       </div>
                     )}
+                    {fileUploadStates.bankProof.url && (
+                      <div className="flex items-center text-green-600 text-xs mt-1">
+                        <CheckCircle2 className="h-4 w-4 mr-1" />
+                        File uploaded successfully
+                      </div>
+                    )}
                     {fileUploadStates.bankProof.error && (
-                      <div className="text-red-600 text-xs mt-1">
+                      <div className="flex items-center text-red-600 text-xs mt-1">
+                        <AlertCircle className="h-4 w-4 mr-1" />
                         {fileUploadStates.bankProof.error}
+                      </div>
+                    )}
+                    {addUserFieldErrors["bankDetails.proofAttachment"] && (
+                      <div className="text-red-600 text-xs mt-1">
+                        {addUserFieldErrors["bankDetails.proofAttachment"]}
                       </div>
                     )}
                   </div>
@@ -1020,10 +960,12 @@ export default function UsersContent() {
               )}
             </div>
           </div>
+
           {addUserError && (
-            <div className="text-red-600 text-sm mb-2">{addUserError}</div>
+            <div className="text-red-600 text-sm mt-4">{addUserError}</div>
           )}
-          <DialogFooter>
+
+          <DialogFooter className="mt-4">
             <Button
               variant="outline"
               onClick={() => setShowAddUserModal(false)}
@@ -1032,15 +974,26 @@ export default function UsersContent() {
               Cancel
             </Button>
             <Button
-              className="bg-[#AACF45] hover:bg-[#9abe3a] text-white"
+              className="bg-[#AACF45] hover:bg-[#9abe3a]"
               onClick={handleAddUser}
-              disabled={addUserLoading}
+              disabled={
+                addUserLoading || 
+                Object.values(fileUploadStates).some(state => state.isUploading)
+              }
             >
-              Create User
+              {addUserLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                "Create User"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
       {addUserLoading && <LoadingOverlay />}
     </main>
   );
