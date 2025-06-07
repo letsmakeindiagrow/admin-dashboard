@@ -461,7 +461,7 @@ export default function UsersContent() {
 
     try {
       const response = await axios.post(
-        "/api/v1/admin/create-user",
+        "/api/v1/admin/create-new-user",
         addUserFields,
         {
           withCredentials: true,
