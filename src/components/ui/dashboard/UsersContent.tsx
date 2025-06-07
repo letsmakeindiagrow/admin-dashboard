@@ -45,6 +45,42 @@ interface User {
   createdAt: string;
 }
 
+interface UserRegistrationForm {
+  // Basic Information
+  referralCode?: string | null;  // Optional
+  mobileNumber: string;          // Required, 10 digits
+  email: string;                 // Required, valid email format
+  password: string;              // Required
+  firstName: string;             // Required
+  lastName: string;              // Required
+  dateOfBirth: Date;            // Required
+
+  // Address Information (Optional)
+  address?: {
+    line1: string;              // Required if address provided
+    line2?: string;             // Optional
+    city: string;               // Required if address provided
+    pincode: string;            // Required if address provided, 6 digits
+  };
+
+  // Identity Details (Optional)
+  identityDetails?: {
+    panNumber: string;          // Required if identity provided, 10 characters
+    panAttachment: File;        // Required if identity provided, PDF/Image
+    aadharNumber: string;       // Required if identity provided, 12 digits
+    aadharFront: File;          // Required if identity provided, PDF/Image
+    aadharBack: File;           // Required if identity provided, PDF/Image
+  };
+
+  // Bank Details (Optional)
+  bankDetails?: {
+    accountNumber: string;      // Required if bank provided, min 8 digits
+    ifscCode: string;          // Required if bank provided, 11 characters
+    branchName: string;         // Required if bank provided
+    proofAttachment: File;      // Required if bank provided, PDF/Image
+  };
+}
+
 // Helper validation functions
 const validateEmail = (email: string) =>
   /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email);
@@ -62,14 +98,14 @@ export default function UsersContent() {
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [addUserLoading, setAddUserLoading] = useState(false);
   const [addUserError, setAddUserError] = useState<string | null>(null);
-  const [addUserFields, setAddUserFields] = useState({
+  const [addUserFields, setAddUserFields] = useState<UserRegistrationForm>({
     firstName: "",
     lastName: "",
     email: "",
     mobileNumber: "",
     password: "",
-    dateOfBirth: "",
-    referralCode: "",
+    dateOfBirth: new Date(),
+    referralCode: null,
     address: {
       line1: "",
       line2: "",
@@ -78,16 +114,16 @@ export default function UsersContent() {
     },
     identityDetails: {
       panNumber: "",
-      panAttachment: "",
+      panAttachment: null as unknown as File,
       aadharNumber: "",
-      aadharFront: "",
-      aadharBack: "",
+      aadharFront: null as unknown as File,
+      aadharBack: null as unknown as File,
     },
     bankDetails: {
       accountNumber: "",
       ifscCode: "",
       branchName: "",
-      proofAttachment: "",
+      proofAttachment: null as unknown as File,
     },
   });
   const [showAddress, setShowAddress] = useState(false);
@@ -134,27 +170,65 @@ export default function UsersContent() {
   });
 
   const handleAddUserChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    if (name.startsWith("address.")) {
-      setAddUserFields((prev) => ({
-        ...prev,
-        address: { ...prev.address, [name.split(".")[1]]: value },
-      }));
-    } else if (name.startsWith("identityDetails.")) {
-      setAddUserFields((prev) => ({
-        ...prev,
-        identityDetails: {
-          ...prev.identityDetails,
-          [name.split(".")[1]]: value,
-        },
-      }));
-    } else if (name.startsWith("bankDetails.")) {
-      setAddUserFields((prev) => ({
-        ...prev,
-        bankDetails: { ...prev.bankDetails, [name.split(".")[1]]: value },
-      }));
+    const { name, value, type, files } = e.target;
+    
+    if (type === 'file' && files && files[0]) {
+      const file = files[0];
+      if (name.startsWith("identityDetails.")) {
+        const field = name.split(".")[1];
+        setAddUserFields((prev) => ({
+          ...prev,
+          identityDetails: {
+            ...prev.identityDetails!,
+            [field]: file,
+          },
+        }));
+      } else if (name.startsWith("bankDetails.")) {
+        const field = name.split(".")[1];
+        setAddUserFields((prev) => ({
+          ...prev,
+          bankDetails: {
+            ...prev.bankDetails!,
+            [field]: file,
+          },
+        }));
+      }
     } else {
-      setAddUserFields((prev) => ({ ...prev, [name]: value }));
+      if (name.startsWith("address.")) {
+        const field = name.split(".")[1];
+        setAddUserFields((prev) => ({
+          ...prev,
+          address: {
+            ...prev.address!,
+            [field]: value,
+          },
+        }));
+      } else if (name.startsWith("identityDetails.")) {
+        const field = name.split(".")[1];
+        setAddUserFields((prev) => ({
+          ...prev,
+          identityDetails: {
+            ...prev.identityDetails!,
+            [field]: value,
+          },
+        }));
+      } else if (name.startsWith("bankDetails.")) {
+        const field = name.split(".")[1];
+        setAddUserFields((prev) => ({
+          ...prev,
+          bankDetails: {
+            ...prev.bankDetails!,
+            [field]: value,
+          },
+        }));
+      } else if (name === "dateOfBirth") {
+        setAddUserFields((prev) => ({
+          ...prev,
+          [name]: new Date(value),
+        }));
+      } else {
+        setAddUserFields((prev) => ({ ...prev, [name]: value }));
+      }
     }
   };
 
@@ -164,97 +238,100 @@ export default function UsersContent() {
     setAddUserLoading(true);
     setAddUserFieldErrors({});
     const errors: any = {};
+
     // Validate required fields and schema
-    if (!addUserFields.firstName.trim())
-      errors.firstName = "First name is required";
-    if (!addUserFields.lastName.trim())
-      errors.lastName = "Last name is required";
+    if (!addUserFields.firstName.trim()) errors.firstName = "First name is required";
+    if (!addUserFields.lastName.trim()) errors.lastName = "Last name is required";
     if (!addUserFields.email.trim()) errors.email = "Email is required";
-    else if (!validateEmail(addUserFields.email))
-      errors.email = "Invalid email format";
-    if (!addUserFields.mobileNumber.trim())
-      errors.mobileNumber = "Mobile number is required";
-    else if (!validateMobile(addUserFields.mobileNumber))
-      errors.mobileNumber = "Mobile number must be 10 digits";
-    if (!addUserFields.password.trim())
-      errors.password = "Password is required";
-    if (!addUserFields.dateOfBirth.trim())
-      errors.dateOfBirth = "Date of birth is required";
-    else if (isNaN(Date.parse(addUserFields.dateOfBirth)))
-      errors.dateOfBirth = "Invalid date";
-    // Address
+    else if (!validateEmail(addUserFields.email)) errors.email = "Invalid email format";
+    if (!addUserFields.mobileNumber.trim()) errors.mobileNumber = "Mobile number is required";
+    else if (!validateMobile(addUserFields.mobileNumber)) errors.mobileNumber = "Mobile number must be 10 digits";
+    if (!addUserFields.password.trim()) errors.password = "Password is required";
+    if (!addUserFields.dateOfBirth) errors.dateOfBirth = "Date of birth is required";
+
+    // Address validation
     if (addUserFields.address) {
-      if (!addUserFields.address.line1.trim())
-        errors["address.line1"] = "Address Line 1 is required";
-      if (!addUserFields.address.pincode.trim())
-        errors["address.pincode"] = "Pincode is required";
-      else if (!validatePincode(addUserFields.address.pincode))
-        errors["address.pincode"] = "Pincode must be 6 digits";
+      if (!addUserFields.address.line1.trim()) errors["address.line1"] = "Address Line 1 is required";
+      if (!addUserFields.address.city.trim()) errors["address.city"] = "City is required";
+      if (!addUserFields.address.pincode.trim()) errors["address.pincode"] = "Pincode is required";
+      else if (!validatePincode(addUserFields.address.pincode)) errors["address.pincode"] = "Pincode must be 6 digits";
     }
-    // Identity
+
+    // Identity validation
     if (addUserFields.identityDetails) {
-      if (!addUserFields.identityDetails.panNumber.trim())
-        errors["identityDetails.panNumber"] = "PAN is required";
-      else if (!validatePAN(addUserFields.identityDetails.panNumber))
-        errors["identityDetails.panNumber"] =
-          "PAN must be 10 characters (ABCDE1234F)";
-      if (!addUserFields.identityDetails.aadharNumber.trim())
-        errors["identityDetails.aadharNumber"] = "Aadhar number is required";
-      else if (!validateAadhar(addUserFields.identityDetails.aadharNumber))
-        errors["identityDetails.aadharNumber"] =
-          "Aadhar number must be 12 digits";
-      // File fields: show a message that backend expects URLs
-      if (!addUserFields.identityDetails.panAttachment)
-        errors["identityDetails.panAttachment"] =
-          "PAN Attachment (URL) is required (backend expects a URL)";
-      if (!addUserFields.identityDetails.aadharFront)
-        errors["identityDetails.aadharFront"] =
-          "Aadhaar Front (URL) is required (backend expects a URL)";
-      if (!addUserFields.identityDetails.aadharBack)
-        errors["identityDetails.aadharBack"] =
-          "Aadhaar Back (URL) is required (backend expects a URL)";
+      if (!addUserFields.identityDetails.panNumber.trim()) errors["identityDetails.panNumber"] = "PAN is required";
+      else if (!validatePAN(addUserFields.identityDetails.panNumber)) errors["identityDetails.panNumber"] = "PAN must be 10 characters (ABCDE1234F)";
+      if (!addUserFields.identityDetails.aadharNumber.trim()) errors["identityDetails.aadharNumber"] = "Aadhar number is required";
+      else if (!validateAadhar(addUserFields.identityDetails.aadharNumber)) errors["identityDetails.aadharNumber"] = "Aadhar number must be 12 digits";
+      if (!addUserFields.identityDetails.panAttachment) errors["identityDetails.panAttachment"] = "PAN Attachment is required";
+      if (!addUserFields.identityDetails.aadharFront) errors["identityDetails.aadharFront"] = "Aadhaar Front is required";
+      if (!addUserFields.identityDetails.aadharBack) errors["identityDetails.aadharBack"] = "Aadhaar Back is required";
     }
-    // Bank
+
+    // Bank validation
     if (addUserFields.bankDetails) {
-      if (!addUserFields.bankDetails.accountNumber.trim())
-        errors["bankDetails.accountNumber"] = "Account number is required";
-      else if (addUserFields.bankDetails.accountNumber.length < 8)
-        errors["bankDetails.accountNumber"] =
-          "Account number must be at least 8 digits";
-      if (!addUserFields.bankDetails.ifscCode.trim())
-        errors["bankDetails.ifscCode"] = "IFSC Code is required";
-      else if (!validateIFSC(addUserFields.bankDetails.ifscCode))
-        errors["bankDetails.ifscCode"] = "Invalid IFSC Code";
-      if (!addUserFields.bankDetails.branchName.trim())
-        errors["bankDetails.branchName"] = "Branch name is required";
-      // File fields: show a message that backend expects URLs
-      if (!addUserFields.bankDetails.proofAttachment)
-        errors["bankDetails.proofAttachment"] =
-          "Proof Attachment (URL) is required (backend expects a URL)";
+      if (!addUserFields.bankDetails.accountNumber.trim()) errors["bankDetails.accountNumber"] = "Account number is required";
+      else if (addUserFields.bankDetails.accountNumber.length < 8) errors["bankDetails.accountNumber"] = "Account number must be at least 8 digits";
+      if (!addUserFields.bankDetails.ifscCode.trim()) errors["bankDetails.ifscCode"] = "IFSC Code is required";
+      else if (!validateIFSC(addUserFields.bankDetails.ifscCode)) errors["bankDetails.ifscCode"] = "Invalid IFSC Code";
+      if (!addUserFields.bankDetails.branchName.trim()) errors["bankDetails.branchName"] = "Branch name is required";
+      if (!addUserFields.bankDetails.proofAttachment) errors["bankDetails.proofAttachment"] = "Proof Attachment is required";
     }
+
     if (Object.keys(errors).length > 0) {
       setAddUserFieldErrors(errors);
       setAddUserLoading(false);
       const errorSummary = Object.values(errors).join("\n");
-      alert(
-        `Please fix the following errors before submitting:\n${errorSummary}`
-      );
+      alert(`Please fix the following errors before submitting:\n${errorSummary}`);
       return;
     }
+
     try {
-      // Send as JSON with dateOfBirth as ISO string
-      const payload = {
-        ...addUserFields,
-        dateOfBirth: new Date(addUserFields.dateOfBirth).toISOString(),
-        referralCode:
-          addUserFields.referralCode.trim() === ""
-            ? null
-            : addUserFields.referralCode,
-      };
-      await axios.post(`/api/v1/admin/create-user`, payload, {
+      const formData = new FormData();
+
+      // Append basic information
+      formData.append("firstName", addUserFields.firstName);
+      formData.append("lastName", addUserFields.lastName);
+      formData.append("email", addUserFields.email);
+      formData.append("mobileNumber", addUserFields.mobileNumber);
+      formData.append("password", addUserFields.password);
+      formData.append("dateOfBirth", addUserFields.dateOfBirth.toISOString());
+      if (addUserFields.referralCode) {
+        formData.append("referralCode", addUserFields.referralCode);
+      }
+
+      // Append address if provided
+      if (addUserFields.address) {
+        formData.append("address[line1]", addUserFields.address.line1);
+        if (addUserFields.address.line2) {
+          formData.append("address[line2]", addUserFields.address.line2);
+        }
+        formData.append("address[city]", addUserFields.address.city);
+        formData.append("address[pincode]", addUserFields.address.pincode);
+      }
+
+      // Append identity details if provided
+      if (addUserFields.identityDetails) {
+        formData.append("identityDetails[panNumber]", addUserFields.identityDetails.panNumber);
+        formData.append("identityDetails[panAttachment]", addUserFields.identityDetails.panAttachment);
+        formData.append("identityDetails[aadharNumber]", addUserFields.identityDetails.aadharNumber);
+        formData.append("identityDetails[aadharFront]", addUserFields.identityDetails.aadharFront);
+        formData.append("identityDetails[aadharBack]", addUserFields.identityDetails.aadharBack);
+      }
+
+      // Append bank details if provided
+      if (addUserFields.bankDetails) {
+        formData.append("bankDetails[accountNumber]", addUserFields.bankDetails.accountNumber);
+        formData.append("bankDetails[ifscCode]", addUserFields.bankDetails.ifscCode);
+        formData.append("bankDetails[branchName]", addUserFields.bankDetails.branchName);
+        formData.append("bankDetails[proofAttachment]", addUserFields.bankDetails.proofAttachment);
+      }
+
+      await axios.post(`/api/v1/admin/create-user`, formData, {
         withCredentials: true,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "multipart/form-data" },
       });
+
       setAddUserFieldErrors({});
       setShowAddUserModal(false);
       setAddUserFields({
@@ -263,8 +340,8 @@ export default function UsersContent() {
         email: "",
         mobileNumber: "",
         password: "",
-        dateOfBirth: "",
-        referralCode: "",
+        dateOfBirth: new Date(),
+        referralCode: null,
         address: {
           line1: "",
           line2: "",
@@ -273,16 +350,16 @@ export default function UsersContent() {
         },
         identityDetails: {
           panNumber: "",
-          panAttachment: "",
+          panAttachment: null as unknown as File,
           aadharNumber: "",
-          aadharFront: "",
-          aadharBack: "",
+          aadharFront: null as unknown as File,
+          aadharBack: null as unknown as File,
         },
         bankDetails: {
           accountNumber: "",
           ifscCode: "",
           branchName: "",
-          proofAttachment: "",
+          proofAttachment: null as unknown as File,
         },
       });
       fetchUsers();
@@ -471,7 +548,7 @@ export default function UsersContent() {
                 <Input
                   id="dateOfBirth"
                   name="dateOfBirth"
-                  value={addUserFields.dateOfBirth}
+                  value={addUserFields.dateOfBirth.toISOString().split('T')[0]}
                   onChange={handleAddUserChange}
                   placeholder="YYYY-MM-DD"
                   type="date"
@@ -487,7 +564,7 @@ export default function UsersContent() {
                 <Input
                   id="referralCode"
                   name="referralCode"
-                  value={addUserFields.referralCode}
+                  value={addUserFields.referralCode || ''}
                   onChange={handleAddUserChange}
                   placeholder="Referral Code (optional)"
                 />
@@ -514,7 +591,7 @@ export default function UsersContent() {
                     <Input
                       id="address.line1"
                       name="address.line1"
-                      value={addUserFields.address.line1}
+                      value={addUserFields.address?.line1}
                       onChange={handleAddUserChange}
                       placeholder="Line 1"
                     />
@@ -524,7 +601,7 @@ export default function UsersContent() {
                     <Input
                       id="address.line2"
                       name="address.line2"
-                      value={addUserFields.address.line2}
+                      value={addUserFields.address?.line2}
                       onChange={handleAddUserChange}
                       placeholder="Line 2"
                     />
@@ -534,7 +611,7 @@ export default function UsersContent() {
                     <Input
                       id="address.city"
                       name="address.city"
-                      value={addUserFields.address.city}
+                      value={addUserFields.address?.city}
                       onChange={handleAddUserChange}
                       placeholder="City"
                     />
@@ -544,7 +621,7 @@ export default function UsersContent() {
                     <Input
                       id="address.pincode"
                       name="address.pincode"
-                      value={addUserFields.address.pincode}
+                      value={addUserFields.address?.pincode}
                       onChange={handleAddUserChange}
                       placeholder="Pincode"
                     />
@@ -575,22 +652,27 @@ export default function UsersContent() {
                     <Input
                       id="identityDetails.panNumber"
                       name="identityDetails.panNumber"
-                      value={addUserFields.identityDetails.panNumber}
+                      value={addUserFields.identityDetails?.panNumber}
                       onChange={handleAddUserChange}
                       placeholder="PAN Number"
                     />
                   </div>
                   <div>
                     <Label htmlFor="identityDetails.panAttachment">
-                      PAN Attachment (AWS URL)*
+                      PAN Attachment*
                     </Label>
                     <Input
                       id="identityDetails.panAttachment"
                       name="identityDetails.panAttachment"
-                      value={addUserFields.identityDetails.panAttachment}
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
                       onChange={handleAddUserChange}
-                      placeholder="https://bucket.s3.amazonaws.com/pan.pdf"
                     />
+                    {addUserFieldErrors["identityDetails.panAttachment"] && (
+                      <div className="text-red-600 text-xs">
+                        {addUserFieldErrors["identityDetails.panAttachment"]}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="identityDetails.aadharNumber">
@@ -599,34 +681,44 @@ export default function UsersContent() {
                     <Input
                       id="identityDetails.aadharNumber"
                       name="identityDetails.aadharNumber"
-                      value={addUserFields.identityDetails.aadharNumber}
+                      value={addUserFields.identityDetails?.aadharNumber}
                       onChange={handleAddUserChange}
                       placeholder="Aadhaar Number"
                     />
                   </div>
                   <div>
                     <Label htmlFor="identityDetails.aadharFront">
-                      Aadhaar Front (AWS URL)*
+                      Aadhaar Front*
                     </Label>
                     <Input
                       id="identityDetails.aadharFront"
                       name="identityDetails.aadharFront"
-                      value={addUserFields.identityDetails.aadharFront}
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
                       onChange={handleAddUserChange}
-                      placeholder="https://bucket.s3.amazonaws.com/aadhar-front.pdf"
                     />
+                    {addUserFieldErrors["identityDetails.aadharFront"] && (
+                      <div className="text-red-600 text-xs">
+                        {addUserFieldErrors["identityDetails.aadharFront"]}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="identityDetails.aadharBack">
-                      Aadhaar Back (AWS URL)*
+                      Aadhaar Back*
                     </Label>
                     <Input
                       id="identityDetails.aadharBack"
                       name="identityDetails.aadharBack"
-                      value={addUserFields.identityDetails.aadharBack}
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
                       onChange={handleAddUserChange}
-                      placeholder="https://bucket.s3.amazonaws.com/aadhar-back.pdf"
                     />
+                    {addUserFieldErrors["identityDetails.aadharBack"] && (
+                      <div className="text-red-600 text-xs">
+                        {addUserFieldErrors["identityDetails.aadharBack"]}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -654,7 +746,7 @@ export default function UsersContent() {
                     <Input
                       id="bankDetails.accountNumber"
                       name="bankDetails.accountNumber"
-                      value={addUserFields.bankDetails.accountNumber}
+                      value={addUserFields.bankDetails?.accountNumber}
                       onChange={handleAddUserChange}
                       placeholder="Account Number"
                     />
@@ -664,7 +756,7 @@ export default function UsersContent() {
                     <Input
                       id="bankDetails.ifscCode"
                       name="bankDetails.ifscCode"
-                      value={addUserFields.bankDetails.ifscCode}
+                      value={addUserFields.bankDetails?.ifscCode}
                       onChange={handleAddUserChange}
                       placeholder="IFSC Code"
                     />
@@ -674,22 +766,27 @@ export default function UsersContent() {
                     <Input
                       id="bankDetails.branchName"
                       name="bankDetails.branchName"
-                      value={addUserFields.bankDetails.branchName}
+                      value={addUserFields.bankDetails?.branchName}
                       onChange={handleAddUserChange}
                       placeholder="Branch Name"
                     />
                   </div>
                   <div className="col-span-2">
                     <Label htmlFor="bankDetails.proofAttachment">
-                      Proof Attachment (AWS URL)*
+                      Proof Attachment*
                     </Label>
                     <Input
                       id="bankDetails.proofAttachment"
                       name="bankDetails.proofAttachment"
-                      value={addUserFields.bankDetails.proofAttachment}
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
                       onChange={handleAddUserChange}
-                      placeholder="https://bucket.s3.amazonaws.com/bank-proof.pdf"
                     />
+                    {addUserFieldErrors["bankDetails.proofAttachment"] && (
+                      <div className="text-red-600 text-xs">
+                        {addUserFieldErrors["bankDetails.proofAttachment"]}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
