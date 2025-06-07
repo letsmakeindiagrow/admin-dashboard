@@ -90,6 +90,28 @@ interface FileUploadStates {
   bankProof: FileUploadState;
 }
 
+interface LoadingOverlayProps {
+  isLoading?: boolean;
+}
+
+const LoadingOverlay: React.FC<LoadingOverlayProps> = ({ isLoading = false }) => {
+  if (!isLoading) return null;
+  
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 flex flex-col items-center space-y-4">
+        <Loader2 className="h-12 w-12 animate-spin text-[#AACF45]" />
+        <div className="text-center">
+          <h3 className="text-lg font-semibold">Creating New User</h3>
+          <p className="text-sm text-gray-500">
+            Please wait while we process your request...
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function UsersContent() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -534,22 +556,6 @@ export default function UsersContent() {
     setShowIdentity(false);
     setShowBank(false);
   };
-
-  const LoadingOverlay = () => (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white p-8 rounded-xl shadow-2xl flex flex-col items-center animate-fade-in">
-        <Loader2 className="h-16 w-16 text-[#00ADEF] animate-spin mb-6" />
-        <h2 className="text-2xl font-semibold mb-2 text-[#00ADEF]">
-          Creating User...
-        </h2>
-        <p className="text-gray-600 text-center">
-          Please wait while we create the user account.
-          <br />
-          This may take a few seconds.
-        </p>
-      </div>
-    </div>
-  );
 
   return (
     <main className="flex-1 overflow-auto p-4 md:p-6">
@@ -1155,19 +1161,7 @@ export default function UsersContent() {
       </Dialog>
 
       {/* Loading Modal */}
-      <Dialog open={isCreatingUser} onOpenChange={() => {}}>
-        <DialogContent className="sm:max-w-md">
-          <div className="flex flex-col items-center justify-center space-y-4 py-4">
-            <Loader2 className="h-12 w-12 animate-spin text-[#AACF45]" />
-            <div className="text-center">
-              <h3 className="text-lg font-semibold">Creating New User</h3>
-              <p className="text-sm text-gray-500">
-                Please wait while we process your request...
-              </p>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <LoadingOverlay isLoading={isCreatingUser} />
     </main>
   );
 }
