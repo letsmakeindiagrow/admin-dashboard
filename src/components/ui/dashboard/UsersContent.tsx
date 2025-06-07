@@ -111,6 +111,7 @@ export default function UsersContent() {
   const [showIdentity, setShowIdentity] = useState(false);
   const [showBank, setShowBank] = useState(false);
   const [addUserFieldErrors, setAddUserFieldErrors] = useState<any>({});
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
 
   const [fileUploadStates, setFileUploadStates] = useState<FileUploadStates>({
     panAttachment: {
@@ -440,6 +441,7 @@ export default function UsersContent() {
   const handleAddUser = async () => {
     setAddUserError(null);
     setAddUserLoading(true);
+    setIsCreatingUser(true);
 
     // Check for any ongoing uploads
     const uploadsInProgress = Object.values(fileUploadStates).some(
@@ -449,6 +451,7 @@ export default function UsersContent() {
     if (uploadsInProgress) {
       setAddUserError("Please wait for all file uploads to complete");
       setAddUserLoading(false);
+      setIsCreatingUser(false);
       return;
     }
 
@@ -456,6 +459,7 @@ export default function UsersContent() {
     if (Object.keys(errors).length > 0) {
       setAddUserFieldErrors(errors);
       setAddUserLoading(false);
+      setIsCreatingUser(false);
       return;
     }
 
@@ -475,12 +479,13 @@ export default function UsersContent() {
       }
     } catch (error: any) {
       if (error.response) {
-        setAddUserError(error.response.data.message || "Error creating user");
+        setAddUserError(error.response.data.message || "Failed to create user");
       } else {
-        setAddUserError("Network error. Please check your connection.");
+        setAddUserError("An unexpected error occurred");
       }
     } finally {
       setAddUserLoading(false);
+      setIsCreatingUser(false);
     }
   };
 
@@ -1139,7 +1144,7 @@ export default function UsersContent() {
               {addUserLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
+                  Creating User...
                 </>
               ) : (
                 "Create User"
@@ -1149,7 +1154,20 @@ export default function UsersContent() {
         </DialogContent>
       </Dialog>
 
-      {addUserLoading && <LoadingOverlay />}
+      {/* Loading Modal */}
+      <Dialog open={isCreatingUser} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-md">
+          <div className="flex flex-col items-center justify-center space-y-4 py-4">
+            <Loader2 className="h-12 w-12 animate-spin text-[#AACF45]" />
+            <div className="text-center">
+              <h3 className="text-lg font-semibold">Creating New User</h3>
+              <p className="text-sm text-gray-500">
+                Please wait while we process your request...
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
