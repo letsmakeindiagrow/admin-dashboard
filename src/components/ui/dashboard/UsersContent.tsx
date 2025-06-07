@@ -90,6 +90,14 @@ const validatePAN = (pan: string) => /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(pan);
 const validateAadhar = (aadhar: string) => /^\d{12}$/.test(aadhar);
 const validateIFSC = (ifsc: string) => /^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifsc);
 
+// Add file size validation helper
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
+const validateFileSize = (file: File) => file.size <= MAX_FILE_SIZE;
+const validateFileType = (file: File) => {
+  const validTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+  return validTypes.includes(file.type);
+};
+
 export default function UsersContent() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -174,6 +182,24 @@ export default function UsersContent() {
     
     if (type === 'file' && files && files[0]) {
       const file = files[0];
+      
+      // Validate file size and type
+      if (!validateFileSize(file)) {
+        setAddUserFieldErrors(prev => ({
+          ...prev,
+          [name]: "File size must be less than 5MB"
+        }));
+        return;
+      }
+      
+      if (!validateFileType(file)) {
+        setAddUserFieldErrors(prev => ({
+          ...prev,
+          [name]: "File must be PDF, JPEG, or PNG"
+        }));
+        return;
+      }
+
       if (name.startsWith("identityDetails.")) {
         const field = name.split(".")[1];
         setAddUserFields((prev) => ({
@@ -183,6 +209,12 @@ export default function UsersContent() {
             [field]: file,
           },
         }));
+        // Clear error if validation passes
+        setAddUserFieldErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors[name];
+          return newErrors;
+        });
       } else if (name.startsWith("bankDetails.")) {
         const field = name.split(".")[1];
         setAddUserFields((prev) => ({
@@ -192,6 +224,28 @@ export default function UsersContent() {
             [field]: file,
           },
         }));
+        // Clear error if validation passes
+        setAddUserFieldErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors[name];
+          return newErrors;
+        });
+      } else if (name.startsWith("address.")) {
+        const field = name.split(".")[1];
+        setAddUserFields((prev) => ({
+          ...prev,
+          address: {
+            ...prev.address!,
+            [field]: value,
+          },
+        }));
+      } else if (name === "dateOfBirth") {
+        setAddUserFields((prev) => ({
+          ...prev,
+          [name]: new Date(value),
+        }));
+      } else {
+        setAddUserFields((prev) => ({ ...prev, [name]: value }));
       }
     } else {
       if (name.startsWith("address.")) {
@@ -327,44 +381,70 @@ export default function UsersContent() {
         formData.append("bankDetails[proofAttachment]", addUserFields.bankDetails.proofAttachment);
       }
 
-      await axios.post(`/api/v1/admin/create-user`, formData, {
+      const response = await axios.post(`/api/v1/admin/create-user`, formData, {
         withCredentials: true,
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      setAddUserFieldErrors({});
-      setShowAddUserModal(false);
-      setAddUserFields({
-        firstName: "",
-        lastName: "",
-        email: "",
-        mobileNumber: "",
-        password: "",
-        dateOfBirth: new Date(),
-        referralCode: null,
-        address: {
-          line1: "",
-          line2: "",
-          city: "",
-          pincode: "",
-        },
-        identityDetails: {
-          panNumber: "",
-          panAttachment: null as unknown as File,
-          aadharNumber: "",
-          aadharFront: null as unknown as File,
-          aadharBack: null as unknown as File,
-        },
-        bankDetails: {
-          accountNumber: "",
-          ifscCode: "",
-          branchName: "",
-          proofAttachment: null as unknown as File,
-        },
-      });
-      fetchUsers();
+      // Handle success response
+      if (response.status === 201) {
+        setAddUserFieldErrors({});
+        setShowAddUserModal(false);
+        setAddUserFields({
+          firstName: "",
+          lastName: "",
+          email: "",
+          mobileNumber: "",
+          password: "",
+          dateOfBirth: new Date(),
+          referralCode: null,
+          address: {
+            line1: "",
+            line2: "",
+            city: "",
+            pincode: "",
+          },
+          identityDetails: {
+            panNumber: "",
+            panAttachment: null as unknown as File,
+            aadharNumber: "",
+            aadharFront: null as unknown as File,
+            aadharBack: null as unknown as File,
+          },
+          bankDetails: {
+            accountNumber: "",
+            ifscCode: "",
+            branchName: "",
+            proofAttachment: null as unknown as File,
+          },
+        });
+        fetchUsers();
+      }
     } catch (error: any) {
-      setAddUserError(error?.response?.data?.message || "Error creating user.");
+      // Handle different error types
+      if (error.response) {
+        switch (error.response.status) {
+          case 400:
+            if (error.response.data.errors) {
+              // Validation errors
+              setAddUserFieldErrors(error.response.data.errors);
+            } else if (error.response.data.message.includes("already exists")) {
+              // User exists error
+              setAddUserError("A user with this email or mobile number already exists");
+            } else if (error.response.data.message.includes("File upload error")) {
+              // File upload error
+              setAddUserError(`File upload error: ${error.response.data.error}`);
+            }
+            break;
+          case 500:
+            setAddUserError("Server error. Please try again later.");
+            break;
+          default:
+            setAddUserError(error.response.data.message || "Error creating user.");
+        }
+      } else {
+        setAddUserError("Network error. Please check your connection.");
+      }
     } finally {
       setAddUserLoading(false);
     }
@@ -668,6 +748,9 @@ export default function UsersContent() {
                       accept=".pdf,.jpg,.jpeg,.png"
                       onChange={handleAddUserChange}
                     />
+                    <div className="text-xs text-gray-500 mt-1">
+                      Max size: 5MB. Allowed formats: PDF, JPEG, PNG
+                    </div>
                     {addUserFieldErrors["identityDetails.panAttachment"] && (
                       <div className="text-red-600 text-xs">
                         {addUserFieldErrors["identityDetails.panAttachment"]}
@@ -697,6 +780,9 @@ export default function UsersContent() {
                       accept=".pdf,.jpg,.jpeg,.png"
                       onChange={handleAddUserChange}
                     />
+                    <div className="text-xs text-gray-500 mt-1">
+                      Max size: 5MB. Allowed formats: PDF, JPEG, PNG
+                    </div>
                     {addUserFieldErrors["identityDetails.aadharFront"] && (
                       <div className="text-red-600 text-xs">
                         {addUserFieldErrors["identityDetails.aadharFront"]}
@@ -714,6 +800,9 @@ export default function UsersContent() {
                       accept=".pdf,.jpg,.jpeg,.png"
                       onChange={handleAddUserChange}
                     />
+                    <div className="text-xs text-gray-500 mt-1">
+                      Max size: 5MB. Allowed formats: PDF, JPEG, PNG
+                    </div>
                     {addUserFieldErrors["identityDetails.aadharBack"] && (
                       <div className="text-red-600 text-xs">
                         {addUserFieldErrors["identityDetails.aadharBack"]}
@@ -782,6 +871,9 @@ export default function UsersContent() {
                       accept=".pdf,.jpg,.jpeg,.png"
                       onChange={handleAddUserChange}
                     />
+                    <div className="text-xs text-gray-500 mt-1">
+                      Max size: 5MB. Allowed formats: PDF, JPEG, PNG
+                    </div>
                     {addUserFieldErrors["bankDetails.proofAttachment"] && (
                       <div className="text-red-600 text-xs">
                         {addUserFieldErrors["bankDetails.proofAttachment"]}
