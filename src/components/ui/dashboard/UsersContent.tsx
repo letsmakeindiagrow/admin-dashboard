@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 interface User {
   id: string;
@@ -66,10 +67,10 @@ interface UserRegistrationForm {
   // Identity Details (Optional)
   identityDetails?: {
     panNumber: string;          // Required if identity provided, 10 characters
-    panAttachment: File;        // Required if identity provided, PDF/Image
+    panAttachment: string;      // Required if identity provided, URL
     aadharNumber: string;       // Required if identity provided, 12 digits
-    aadharFront: File;          // Required if identity provided, PDF/Image
-    aadharBack: File;           // Required if identity provided, PDF/Image
+    aadharFront: string;        // Required if identity provided, URL
+    aadharBack: string;         // Required if identity provided, URL
   };
 
   // Bank Details (Optional)
@@ -77,7 +78,7 @@ interface UserRegistrationForm {
     accountNumber: string;      // Required if bank provided, min 8 digits
     ifscCode: string;          // Required if bank provided, 11 characters
     branchName: string;         // Required if bank provided
-    proofAttachment: File;      // Required if bank provided, PDF/Image
+    proofAttachment: string;    // Required if bank provided, URL
   };
 }
 
@@ -90,13 +91,21 @@ const validatePAN = (pan: string) => /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(pan);
 const validateAadhar = (aadhar: string) => /^\d{12}$/.test(aadhar);
 const validateIFSC = (ifsc: string) => /^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifsc);
 
-// Add file size validation helper
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
-const validateFileSize = (file: File) => file.size <= MAX_FILE_SIZE;
-const validateFileType = (file: File) => {
-  const validTypes = ['application/pdf', 'image/jpeg', 'image/png'];
-  return validTypes.includes(file.type);
-};
+// Add interface for file upload state
+interface FileUploadState {
+  isUploading: boolean;
+  progress: number;
+  error: string | null;
+  file: File | null;
+  url: string;
+}
+
+interface FileUploadStates {
+  panAttachment: FileUploadState;
+  aadharFront: FileUploadState;
+  aadharBack: FileUploadState;
+  bankProof: FileUploadState;
+}
 
 export default function UsersContent() {
   const [users, setUsers] = useState<User[]>([]);
@@ -122,22 +131,30 @@ export default function UsersContent() {
     },
     identityDetails: {
       panNumber: "",
-      panAttachment: null as unknown as File,
+      panAttachment: "",
       aadharNumber: "",
-      aadharFront: null as unknown as File,
-      aadharBack: null as unknown as File,
+      aadharFront: "",
+      aadharBack: "",
     },
     bankDetails: {
       accountNumber: "",
       ifscCode: "",
       branchName: "",
-      proofAttachment: null as unknown as File,
+      proofAttachment: "",
     },
   });
   const [showAddress, setShowAddress] = useState(false);
   const [showIdentity, setShowIdentity] = useState(false);
   const [showBank, setShowBank] = useState(false);
   const [addUserFieldErrors, setAddUserFieldErrors] = useState<any>({});
+
+  // Update initial state
+  const [fileUploadStates, setFileUploadStates] = useState<FileUploadStates>({
+    panAttachment: { isUploading: false, progress: 0, error: null, file: null, url: "" },
+    aadharFront: { isUploading: false, progress: 0, error: null, file: null, url: "" },
+    aadharBack: { isUploading: false, progress: 0, error: null, file: null, url: "" },
+    bankProof: { isUploading: false, progress: 0, error: null, file: null, url: "" },
+  });
 
   const fetchUsers = async () => {
     try {
@@ -177,76 +194,140 @@ export default function UsersContent() {
     return matchesSearch;
   });
 
+  // Update file upload function
+  const uploadFile = async (file: File, documentType: keyof FileUploadStates) => {
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB max size
+
+    if (file.size > MAX_FILE_SIZE) {
+      setFileUploadStates((prev: FileUploadStates) => ({
+        ...prev,
+        [documentType]: {
+          ...prev[documentType],
+          error: "File size must be less than 5MB",
+          file: null,
+          url: ""
+        }
+      }));
+      return null;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("documentType", documentType);
+
+    try {
+      setFileUploadStates((prev: FileUploadStates) => ({
+        ...prev,
+        [documentType]: {
+          ...prev[documentType],
+          isUploading: true,
+          error: null,
+          file,
+          url: ""
+        }
+      }));
+
+      const response = await axios.post(`/api/v1/documents/upload`, formData, {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        onUploadProgress: (progressEvent) => {
+          const progress = progressEvent.total
+            ? Math.round((progressEvent.loaded * 100) / progressEvent.total)
+            : 0;
+          setFileUploadStates((prev: FileUploadStates) => ({
+            ...prev,
+            [documentType]: {
+              ...prev[documentType],
+              progress,
+              file: prev[documentType].file,
+              url: prev[documentType].url
+            }
+          }));
+        },
+      });
+
+      // Update the form data with the URL
+      const url = response.data.url;
+      setFileUploadStates((prev: FileUploadStates) => ({
+        ...prev,
+        [documentType]: {
+          ...prev[documentType],
+          url,
+          file: prev[documentType].file
+        }
+      }));
+
+      if (documentType === "panAttachment") {
+        setAddUserFields(prev => ({
+          ...prev,
+          identityDetails: {
+            ...prev.identityDetails!,
+            panAttachment: url
+          }
+        }));
+      } else if (documentType === "aadharFront") {
+        setAddUserFields(prev => ({
+          ...prev,
+          identityDetails: {
+            ...prev.identityDetails!,
+            aadharFront: url
+          }
+        }));
+      } else if (documentType === "aadharBack") {
+        setAddUserFields(prev => ({
+          ...prev,
+          identityDetails: {
+            ...prev.identityDetails!,
+            aadharBack: url
+          }
+        }));
+      } else if (documentType === "bankProof") {
+        setAddUserFields(prev => ({
+          ...prev,
+          bankDetails: {
+            ...prev.bankDetails!,
+            proofAttachment: url
+          }
+        }));
+      }
+
+      return url;
+    } catch (error) {
+      console.error(`Error uploading ${documentType}:`, error);
+      setFileUploadStates((prev: FileUploadStates) => ({
+        ...prev,
+        [documentType]: {
+          ...prev[documentType],
+          error: "Failed to upload file. Please try again.",
+          file: null,
+          url: ""
+        }
+      }));
+      return null;
+    } finally {
+      setFileUploadStates((prev: FileUploadStates) => ({
+        ...prev,
+        [documentType]: {
+          ...prev[documentType],
+          isUploading: false,
+          progress: 0,
+          file: prev[documentType].file,
+          url: prev[documentType].url
+        }
+      }));
+    }
+  };
+
+  // Update handleAddUserChange to use the new file upload function
   const handleAddUserChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, files } = e.target;
     
     if (type === 'file' && files && files[0]) {
       const file = files[0];
-      
-      // Validate file size and type
-      if (!validateFileSize(file)) {
-        setAddUserFieldErrors(prev => ({
-          ...prev,
-          [name]: "File size must be less than 5MB"
-        }));
-        return;
-      }
-      
-      if (!validateFileType(file)) {
-        setAddUserFieldErrors(prev => ({
-          ...prev,
-          [name]: "File must be PDF, JPEG, or PNG"
-        }));
-        return;
-      }
-
-      if (name.startsWith("identityDetails.")) {
-        const field = name.split(".")[1];
-        setAddUserFields((prev) => ({
-          ...prev,
-          identityDetails: {
-            ...prev.identityDetails!,
-            [field]: file,
-          },
-        }));
-        // Clear error if validation passes
-        setAddUserFieldErrors(prev => {
-          const newErrors = { ...prev };
-          delete newErrors[name];
-          return newErrors;
-        });
-      } else if (name.startsWith("bankDetails.")) {
-        const field = name.split(".")[1];
-        setAddUserFields((prev) => ({
-          ...prev,
-          bankDetails: {
-            ...prev.bankDetails!,
-            [field]: file,
-          },
-        }));
-        // Clear error if validation passes
-        setAddUserFieldErrors(prev => {
-          const newErrors = { ...prev };
-          delete newErrors[name];
-          return newErrors;
-        });
-      } else if (name.startsWith("address.")) {
-        const field = name.split(".")[1];
-        setAddUserFields((prev) => ({
-          ...prev,
-          address: {
-            ...prev.address!,
-            [field]: value,
-          },
-        }));
-      } else if (name === "dateOfBirth") {
-        setAddUserFields((prev) => ({
-          ...prev,
-          [name]: new Date(value),
-        }));
-      } else {
-        setAddUserFields((prev) => ({ ...prev, [name]: value }));
-      }
+      const documentType = name.split(".")[1] as keyof FileUploadStates;
+      uploadFile(file, documentType);
     } else {
       if (name.startsWith("address.")) {
         const field = name.split(".")[1];
@@ -341,52 +422,10 @@ export default function UsersContent() {
     }
 
     try {
-      const formData = new FormData();
-
-      // Append basic information
-      formData.append("firstName", addUserFields.firstName);
-      formData.append("lastName", addUserFields.lastName);
-      formData.append("email", addUserFields.email);
-      formData.append("mobileNumber", addUserFields.mobileNumber);
-      formData.append("password", addUserFields.password);
-      formData.append("dateOfBirth", addUserFields.dateOfBirth.toISOString());
-      if (addUserFields.referralCode) {
-        formData.append("referralCode", addUserFields.referralCode);
-      }
-
-      // Append address if provided
-      if (addUserFields.address) {
-        formData.append("address[line1]", addUserFields.address.line1);
-        if (addUserFields.address.line2) {
-          formData.append("address[line2]", addUserFields.address.line2);
-        }
-        formData.append("address[city]", addUserFields.address.city);
-        formData.append("address[pincode]", addUserFields.address.pincode);
-      }
-
-      // Append identity details if provided
-      if (addUserFields.identityDetails) {
-        formData.append("identityDetails[panNumber]", addUserFields.identityDetails.panNumber);
-        formData.append("identityDetails[panAttachment]", addUserFields.identityDetails.panAttachment);
-        formData.append("identityDetails[aadharNumber]", addUserFields.identityDetails.aadharNumber);
-        formData.append("identityDetails[aadharFront]", addUserFields.identityDetails.aadharFront);
-        formData.append("identityDetails[aadharBack]", addUserFields.identityDetails.aadharBack);
-      }
-
-      // Append bank details if provided
-      if (addUserFields.bankDetails) {
-        formData.append("bankDetails[accountNumber]", addUserFields.bankDetails.accountNumber);
-        formData.append("bankDetails[ifscCode]", addUserFields.bankDetails.ifscCode);
-        formData.append("bankDetails[branchName]", addUserFields.bankDetails.branchName);
-        formData.append("bankDetails[proofAttachment]", addUserFields.bankDetails.proofAttachment);
-      }
-
-      const response = await axios.post(`/api/v1/admin/create-user`, formData, {
+      const response = await axios.post(`/api/v1/admin/create-user`, addUserFields, {
         withCredentials: true,
-        headers: { "Content-Type": "multipart/form-data" },
       });
 
-      // Handle success response
       if (response.status === 201) {
         setAddUserFieldErrors({});
         setShowAddUserModal(false);
@@ -406,16 +445,16 @@ export default function UsersContent() {
           },
           identityDetails: {
             panNumber: "",
-            panAttachment: null as unknown as File,
+            panAttachment: "",
             aadharNumber: "",
-            aadharFront: null as unknown as File,
-            aadharBack: null as unknown as File,
+            aadharFront: "",
+            aadharBack: "",
           },
           bankDetails: {
             accountNumber: "",
             ifscCode: "",
             branchName: "",
-            proofAttachment: null as unknown as File,
+            proofAttachment: "",
           },
         });
         fetchUsers();
@@ -449,6 +488,23 @@ export default function UsersContent() {
       setAddUserLoading(false);
     }
   };
+
+  // Add LoadingOverlay component
+  const LoadingOverlay = () => (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white p-8 rounded-xl shadow-2xl flex flex-col items-center animate-fade-in">
+        <Loader2 className="h-16 w-16 text-[#00ADEF] animate-spin mb-6" />
+        <h2 className="text-2xl font-semibold mb-2 text-[#00ADEF]">
+          Creating User...
+        </h2>
+        <p className="text-gray-600 text-center">
+          Please wait while we create the user account.
+          <br />
+          This may take a few seconds.
+        </p>
+      </div>
+    </div>
+  );
 
   return (
     <main className="flex-1 overflow-auto p-4 md:p-6">
@@ -751,9 +807,22 @@ export default function UsersContent() {
                     <div className="text-xs text-gray-500 mt-1">
                       Max size: 5MB. Allowed formats: PDF, JPEG, PNG
                     </div>
-                    {addUserFieldErrors["identityDetails.panAttachment"] && (
-                      <div className="text-red-600 text-xs">
-                        {addUserFieldErrors["identityDetails.panAttachment"]}
+                    {fileUploadStates.panAttachment.isUploading && (
+                      <div className="mt-2">
+                        <div className="h-2 bg-gray-200 rounded-full">
+                          <div
+                            className="h-2 bg-[#00ADEF] rounded-full transition-all duration-300"
+                            style={{ width: `${fileUploadStates.panAttachment.progress}%` }}
+                          />
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          Uploading: {fileUploadStates.panAttachment.progress}%
+                        </div>
+                      </div>
+                    )}
+                    {fileUploadStates.panAttachment.error && (
+                      <div className="text-red-600 text-xs mt-1">
+                        {fileUploadStates.panAttachment.error}
                       </div>
                     )}
                   </div>
@@ -783,9 +852,22 @@ export default function UsersContent() {
                     <div className="text-xs text-gray-500 mt-1">
                       Max size: 5MB. Allowed formats: PDF, JPEG, PNG
                     </div>
-                    {addUserFieldErrors["identityDetails.aadharFront"] && (
-                      <div className="text-red-600 text-xs">
-                        {addUserFieldErrors["identityDetails.aadharFront"]}
+                    {fileUploadStates.aadharFront.isUploading && (
+                      <div className="mt-2">
+                        <div className="h-2 bg-gray-200 rounded-full">
+                          <div
+                            className="h-2 bg-[#00ADEF] rounded-full transition-all duration-300"
+                            style={{ width: `${fileUploadStates.aadharFront.progress}%` }}
+                          />
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          Uploading: {fileUploadStates.aadharFront.progress}%
+                        </div>
+                      </div>
+                    )}
+                    {fileUploadStates.aadharFront.error && (
+                      <div className="text-red-600 text-xs mt-1">
+                        {fileUploadStates.aadharFront.error}
                       </div>
                     )}
                   </div>
@@ -803,9 +885,22 @@ export default function UsersContent() {
                     <div className="text-xs text-gray-500 mt-1">
                       Max size: 5MB. Allowed formats: PDF, JPEG, PNG
                     </div>
-                    {addUserFieldErrors["identityDetails.aadharBack"] && (
-                      <div className="text-red-600 text-xs">
-                        {addUserFieldErrors["identityDetails.aadharBack"]}
+                    {fileUploadStates.aadharBack.isUploading && (
+                      <div className="mt-2">
+                        <div className="h-2 bg-gray-200 rounded-full">
+                          <div
+                            className="h-2 bg-[#00ADEF] rounded-full transition-all duration-300"
+                            style={{ width: `${fileUploadStates.aadharBack.progress}%` }}
+                          />
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          Uploading: {fileUploadStates.aadharBack.progress}%
+                        </div>
+                      </div>
+                    )}
+                    {fileUploadStates.aadharBack.error && (
+                      <div className="text-red-600 text-xs mt-1">
+                        {fileUploadStates.aadharBack.error}
                       </div>
                     )}
                   </div>
@@ -874,9 +969,22 @@ export default function UsersContent() {
                     <div className="text-xs text-gray-500 mt-1">
                       Max size: 5MB. Allowed formats: PDF, JPEG, PNG
                     </div>
-                    {addUserFieldErrors["bankDetails.proofAttachment"] && (
-                      <div className="text-red-600 text-xs">
-                        {addUserFieldErrors["bankDetails.proofAttachment"]}
+                    {fileUploadStates.bankProof.isUploading && (
+                      <div className="mt-2">
+                        <div className="h-2 bg-gray-200 rounded-full">
+                          <div
+                            className="h-2 bg-[#00ADEF] rounded-full transition-all duration-300"
+                            style={{ width: `${fileUploadStates.bankProof.progress}%` }}
+                          />
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          Uploading: {fileUploadStates.bankProof.progress}%
+                        </div>
+                      </div>
+                    )}
+                    {fileUploadStates.bankProof.error && (
+                      <div className="text-red-600 text-xs mt-1">
+                        {fileUploadStates.bankProof.error}
                       </div>
                     )}
                   </div>
@@ -905,6 +1013,7 @@ export default function UsersContent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {addUserLoading && <LoadingOverlay />}
     </main>
   );
 }
