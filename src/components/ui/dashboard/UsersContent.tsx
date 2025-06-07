@@ -411,8 +411,12 @@ export default function UsersContent() {
       if (!addUserFields.bankDetails.ifscCode.trim()) errors["bankDetails.ifscCode"] = "IFSC Code is required";
       else if (!validateIFSC(addUserFields.bankDetails.ifscCode)) errors["bankDetails.ifscCode"] = "Invalid IFSC Code";
       if (!addUserFields.bankDetails.branchName.trim()) errors["bankDetails.branchName"] = "Branch name is required";
-      // Check if the file has been uploaded successfully by checking the URL
-      if (!fileUploadStates.bankProof.url) errors["bankDetails.proofAttachment"] = "Proof Attachment is required";
+      
+      // Check both the URL in fileUploadStates and the form data
+      const hasBankProof = Boolean(fileUploadStates.bankProof.url) || Boolean(addUserFields.bankDetails.proofAttachment);
+      if (!hasBankProof) {
+        errors["bankDetails.proofAttachment"] = "Proof Attachment is required";
+      }
     }
 
     if (Object.keys(errors).length > 0) {
