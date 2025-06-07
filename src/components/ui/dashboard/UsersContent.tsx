@@ -269,8 +269,27 @@ export default function UsersContent() {
           };
         } else if (name === "dateOfBirth") {
           newFields.dateOfBirth = new Date(value);
+        } else if (name === "referralCode") {
+          newFields.referralCode = value || null;
         } else {
-          newFields[name as keyof UserRegistrationForm] = value;
+          // Handle basic string fields
+          switch (name) {
+            case "firstName":
+              newFields.firstName = value;
+              break;
+            case "lastName":
+              newFields.lastName = value;
+              break;
+            case "email":
+              newFields.email = value;
+              break;
+            case "mobileNumber":
+              newFields.mobileNumber = value;
+              break;
+            case "password":
+              newFields.password = value;
+              break;
+          }
         }
         
         return newFields;
