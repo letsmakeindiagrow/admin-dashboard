@@ -327,7 +327,7 @@ export default function UsersContent() {
         formData.append("bankDetails[proofAttachment]", addUserFields.bankDetails.proofAttachment);
       }
 
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/v1/admin/create-user`, formData, {
+      await axios.post(`/api/v1/admin/create-user`, formData, {
         withCredentials: true,
         headers: { "Content-Type": "multipart/form-data" },
       });
