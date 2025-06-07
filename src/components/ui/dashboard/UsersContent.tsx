@@ -269,7 +269,7 @@ export default function UsersContent() {
               panNumber: "", panAttachment: "", 
               aadharNumber: "", aadharFront: "", aadharBack: "" 
             },
-            [child]: value
+            [child]: child === "panNumber" ? value.toUpperCase() : value
           };
         } else if (parent === "bankDetails") {
           newFields.bankDetails = {
@@ -737,8 +737,10 @@ export default function UsersContent() {
                     <Input
                       id="identityDetails.panNumber"
                       name="identityDetails.panNumber"
-                      value={addUserFields.identityDetails?.panNumber || ''}
+                      value={addUserFields.identityDetails?.panNumber}
                       onChange={handleAddUserChange}
+                      placeholder="PAN Number"
+                      style={{ textTransform: "uppercase" }}
                     />
                     {addUserFieldErrors["identityDetails.panNumber"] && (
                       <div className="text-red-600 text-xs mt-1">
