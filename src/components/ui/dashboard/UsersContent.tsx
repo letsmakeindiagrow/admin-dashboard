@@ -277,7 +277,7 @@ export default function UsersContent() {
               accountNumber: "", ifscCode: "", 
               branchName: "", proofAttachment: ""
             },
-            [child]: value
+            [child]: child === "ifscCode" ? value.toUpperCase() : value
           };
         } else if (name === "dateOfBirth") {
           newFields.dateOfBirth = new Date(value);
@@ -925,8 +925,10 @@ export default function UsersContent() {
                     <Input
                       id="bankDetails.ifscCode"
                       name="bankDetails.ifscCode"
-                      value={addUserFields.bankDetails?.ifscCode || ''}
+                      value={addUserFields.bankDetails?.ifscCode}
                       onChange={handleAddUserChange}
+                      placeholder="IFSC Code"
+                      style={{ textTransform: "uppercase" }}
                     />
                     {addUserFieldErrors["bankDetails.ifscCode"] && (
                       <div className="text-red-600 text-xs mt-1">
