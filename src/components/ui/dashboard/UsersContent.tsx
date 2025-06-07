@@ -195,7 +195,19 @@ export default function UsersContent() {
         },
       });
 
+      console.log('Upload response for', documentType, ':', response.data);
       const url = response.data.url;
+      if (!url) {
+        setFileUploadStates(prev => ({
+          ...prev,
+          [documentType]: {
+            ...prev[documentType],
+            isUploading: false,
+            error: 'No URL returned from upload',
+          }
+        }));
+        return null;
+      }
       setFileUploadStates(prev => ({
         ...prev,
         [documentType]: {
@@ -206,9 +218,9 @@ export default function UsersContent() {
         }
       }));
 
-      // Update the corresponding form field
+      // Set the URL in the form data as well
       setAddUserFields(prev => {
-        const newFields = {...prev};
+        const newFields = { ...prev };
         if (documentType === "panAttachment" && newFields.identityDetails) {
           newFields.identityDetails.panAttachment = url;
         } else if (documentType === "aadharFront" && newFields.identityDetails) {
@@ -360,7 +372,9 @@ export default function UsersContent() {
       if (!addUserFields.bankDetails?.branchName) {
         errors["bankDetails.branchName"] = "Branch name is required";
       }
-      if (!fileUploadStates.bankProof.url) {
+      const bankProofUploading = fileUploadStates.bankProof.isUploading;
+      const bankProofUrl = fileUploadStates.bankProof.url || addUserFields.bankDetails?.proofAttachment;
+      if (!bankProofUploading && !bankProofUrl) {
         errors["bankDetails.proofAttachment"] = "Bank proof is required";
       }
     }
