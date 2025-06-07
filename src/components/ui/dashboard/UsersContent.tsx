@@ -113,15 +113,39 @@ export default function UsersContent() {
   const [addUserFieldErrors, setAddUserFieldErrors] = useState<any>({});
 
   const [fileUploadStates, setFileUploadStates] = useState<FileUploadStates>({
-    panAttachment: { isUploading: false, progress: 0, error: null, file: null, url: "" },
-    aadharFront: { isUploading: false, progress: 0, error: null, file: null, url: "" },
-    aadharBack: { isUploading: false, progress: 0, error: null, file: null, url: "" },
-    bankProof: { isUploading: false, progress: 0, error: null, file: null, url: "" },
+    panAttachment: {
+      isUploading: false,
+      progress: 0,
+      error: null,
+      file: null,
+      url: "",
+    },
+    aadharFront: {
+      isUploading: false,
+      progress: 0,
+      error: null,
+      file: null,
+      url: "",
+    },
+    aadharBack: {
+      isUploading: false,
+      progress: 0,
+      error: null,
+      file: null,
+      url: "",
+    },
+    bankProof: {
+      isUploading: false,
+      progress: 0,
+      error: null,
+      file: null,
+      url: "",
+    },
   });
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get('/api/v1/admin/get-users', {
+      const response = await axios.get("/api/v1/admin/get-users", {
         withCredentials: true,
       });
       if (response.status === 200) {
@@ -139,23 +163,28 @@ export default function UsersContent() {
   }, []);
 
   const filteredUsers = users.filter((user) => {
-    const matchesSearch = user.email?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = user.email
+      ?.toLowerCase()
+      .includes(searchQuery.toLowerCase());
     if (filter === "all") return matchesSearch;
     return matchesSearch && user.verificationState === filter.toUpperCase();
   });
 
-  const uploadFile = async (file: File, documentType: keyof FileUploadStates) => {
+  const uploadFile = async (
+    file: File,
+    documentType: keyof FileUploadStates
+  ) => {
     const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
     if (file.size > MAX_FILE_SIZE) {
-      setFileUploadStates(prev => ({
+      setFileUploadStates((prev) => ({
         ...prev,
         [documentType]: {
           ...prev[documentType],
           error: "File size must be less than 5MB",
           file: null,
-          url: ""
-        }
+          url: "",
+        },
       }));
       return null;
     }
@@ -165,18 +194,18 @@ export default function UsersContent() {
     formData.append("documentType", documentType);
 
     try {
-      setFileUploadStates(prev => ({
+      setFileUploadStates((prev) => ({
         ...prev,
         [documentType]: {
           ...prev[documentType],
           isUploading: true,
           error: null,
           file,
-          url: ""
-        }
+          url: "",
+        },
       }));
 
-      const response = await axios.post('/api/v1/documents/upload', formData, {
+      const response = await axios.post("/api/v1/documents/upload", formData, {
         withCredentials: true,
         headers: {
           "Content-Type": "multipart/form-data",
@@ -185,45 +214,48 @@ export default function UsersContent() {
           const progress = progressEvent.total
             ? Math.round((progressEvent.loaded * 100) / progressEvent.total)
             : 0;
-          setFileUploadStates(prev => ({
+          setFileUploadStates((prev) => ({
             ...prev,
             [documentType]: {
               ...prev[documentType],
-              progress
-            }
+              progress,
+            },
           }));
         },
       });
 
-      console.log('Upload response for', documentType, ':', response.data);
+      console.log("Upload response for", documentType, ":", response.data);
       const url = response.data.url;
       if (!url) {
-        setFileUploadStates(prev => ({
+        setFileUploadStates((prev) => ({
           ...prev,
           [documentType]: {
             ...prev[documentType],
             isUploading: false,
-            error: 'No URL returned from upload',
-          }
+            error: "No URL returned from upload",
+          },
         }));
         return null;
       }
-      setFileUploadStates(prev => ({
+      setFileUploadStates((prev) => ({
         ...prev,
         [documentType]: {
           ...prev[documentType],
           url,
           isUploading: false,
-          error: null
-        }
+          error: null,
+        },
       }));
 
       // Set the URL in the form data as well
-      setAddUserFields(prev => {
+      setAddUserFields((prev) => {
         const newFields = { ...prev };
         if (documentType === "panAttachment" && newFields.identityDetails) {
           newFields.identityDetails.panAttachment = url;
-        } else if (documentType === "aadharFront" && newFields.identityDetails) {
+        } else if (
+          documentType === "aadharFront" &&
+          newFields.identityDetails
+        ) {
           newFields.identityDetails.aadharFront = url;
         } else if (documentType === "aadharBack" && newFields.identityDetails) {
           newFields.identityDetails.aadharBack = url;
@@ -235,13 +267,13 @@ export default function UsersContent() {
 
       return url;
     } catch (error) {
-      setFileUploadStates(prev => ({
+      setFileUploadStates((prev) => ({
         ...prev,
         [documentType]: {
           ...prev[documentType],
           error: "Failed to upload file. Please try again.",
-          isUploading: false
-        }
+          isUploading: false,
+        },
       }));
       return null;
     }
@@ -249,35 +281,40 @@ export default function UsersContent() {
 
   const handleAddUserChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, files } = e.target;
-    
-    if (type === 'file' && files && files[0]) {
+
+    if (type === "file" && files && files[0]) {
       const documentType = name.split(".")[1] as keyof FileUploadStates;
       uploadFile(files[0], documentType);
     } else {
-      setAddUserFields(prev => {
-        const newFields = {...prev};
+      setAddUserFields((prev) => {
+        const newFields = { ...prev };
         const [parent, child] = name.split(".");
-        
+
         if (parent === "address") {
           newFields.address = {
-            ...newFields.address || { line1: "", city: "", pincode: "" },
-            [child]: value
+            ...(newFields.address || { line1: "", city: "", pincode: "" }),
+            [child]: value,
           };
         } else if (parent === "identityDetails") {
           newFields.identityDetails = {
-            ...newFields.identityDetails || { 
-              panNumber: "", panAttachment: "", 
-              aadharNumber: "", aadharFront: "", aadharBack: "" 
-            },
-            [child]: child === "panNumber" ? value.toUpperCase() : value
+            ...(newFields.identityDetails || {
+              panNumber: "",
+              panAttachment: "",
+              aadharNumber: "",
+              aadharFront: "",
+              aadharBack: "",
+            }),
+            [child]: child === "panNumber" ? value.toUpperCase() : value,
           };
         } else if (parent === "bankDetails") {
           newFields.bankDetails = {
-            ...newFields.bankDetails || {
-              accountNumber: "", ifscCode: "", 
-              branchName: "", proofAttachment: ""
-            },
-            [child]: child === "ifscCode" ? value.toUpperCase() : value
+            ...(newFields.bankDetails || {
+              accountNumber: "",
+              ifscCode: "",
+              branchName: "",
+              proofAttachment: "",
+            }),
+            [child]: child === "ifscCode" ? value.toUpperCase() : value,
           };
         } else if (name === "dateOfBirth") {
           newFields.dateOfBirth = new Date(value);
@@ -303,7 +340,7 @@ export default function UsersContent() {
               break;
           }
         }
-        
+
         return newFields;
       });
     }
@@ -312,31 +349,47 @@ export default function UsersContent() {
   const validateForm = () => {
     const errors: any = {};
     const requiredFields = [
-      'firstName', 'lastName', 'email', 'mobileNumber', 'password', 'dateOfBirth'
+      "firstName",
+      "lastName",
+      "email",
+      "mobileNumber",
+      "password",
+      "dateOfBirth",
     ];
 
     // Basic field validation
-    requiredFields.forEach(field => {
+    requiredFields.forEach((field) => {
       if (!addUserFields[field as keyof UserRegistrationForm]) {
-        errors[field] = `${field.replace(/([A-Z])/g, ' $1').trim()} is required`;
+        errors[field] = `${field
+          .replace(/([A-Z])/g, " $1")
+          .trim()} is required`;
       }
     });
 
     // Email format validation
-    if (addUserFields.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addUserFields.email)) {
+    if (
+      addUserFields.email &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addUserFields.email)
+    ) {
       errors.email = "Invalid email format";
     }
 
     // Mobile number validation
-    if (addUserFields.mobileNumber && !/^\d{10}$/.test(addUserFields.mobileNumber)) {
+    if (
+      addUserFields.mobileNumber &&
+      !/^\d{10}$/.test(addUserFields.mobileNumber)
+    ) {
       errors.mobileNumber = "Mobile number must be 10 digits";
     }
 
     // Address validation if shown
     if (showAddress) {
-      if (!addUserFields.address?.line1) errors["address.line1"] = "Address line 1 is required";
-      if (!addUserFields.address?.city) errors["address.city"] = "City is required";
-      if (!addUserFields.address?.pincode) errors["address.pincode"] = "Pincode is required";
+      if (!addUserFields.address?.line1)
+        errors["address.line1"] = "Address line 1 is required";
+      if (!addUserFields.address?.city)
+        errors["address.city"] = "City is required";
+      if (!addUserFields.address?.pincode)
+        errors["address.pincode"] = "Pincode is required";
       else if (!/^\d{6}$/.test(addUserFields.address.pincode)) {
         errors["address.pincode"] = "Pincode must be 6 digits";
       }
@@ -373,7 +426,9 @@ export default function UsersContent() {
         errors["bankDetails.branchName"] = "Branch name is required";
       }
       const bankProofUploading = fileUploadStates.bankProof.isUploading;
-      const bankProofUrl = fileUploadStates.bankProof.url || addUserFields.bankDetails?.proofAttachment;
+      const bankProofUrl =
+        fileUploadStates.bankProof.url ||
+        addUserFields.bankDetails?.proofAttachment;
       if (!bankProofUploading && !bankProofUrl) {
         errors["bankDetails.proofAttachment"] = "Bank proof is required";
       }
@@ -385,10 +440,10 @@ export default function UsersContent() {
   const handleAddUser = async () => {
     setAddUserError(null);
     setAddUserLoading(true);
-    
+
     // Check for any ongoing uploads
     const uploadsInProgress = Object.values(fileUploadStates).some(
-      state => state.isUploading
+      (state) => state.isUploading
     );
 
     if (uploadsInProgress) {
@@ -405,9 +460,13 @@ export default function UsersContent() {
     }
 
     try {
-      const response = await axios.post('/api/v1/admin/create-user', addUserFields, {
-        withCredentials: true,
-      });
+      const response = await axios.post(
+        "/api/v1/admin/create-user",
+        addUserFields,
+        {
+          withCredentials: true,
+        }
+      );
 
       if (response.status === 201) {
         setShowAddUserModal(false);
@@ -436,10 +495,34 @@ export default function UsersContent() {
       referralCode: null,
     });
     setFileUploadStates({
-      panAttachment: { isUploading: false, progress: 0, error: null, file: null, url: "" },
-      aadharFront: { isUploading: false, progress: 0, error: null, file: null, url: "" },
-      aadharBack: { isUploading: false, progress: 0, error: null, file: null, url: "" },
-      bankProof: { isUploading: false, progress: 0, error: null, file: null, url: "" },
+      panAttachment: {
+        isUploading: false,
+        progress: 0,
+        error: null,
+        file: null,
+        url: "",
+      },
+      aadharFront: {
+        isUploading: false,
+        progress: 0,
+        error: null,
+        file: null,
+        url: "",
+      },
+      aadharBack: {
+        isUploading: false,
+        progress: 0,
+        error: null,
+        file: null,
+        url: "",
+      },
+      bankProof: {
+        isUploading: false,
+        progress: 0,
+        error: null,
+        file: null,
+        url: "",
+      },
     });
     setAddUserFieldErrors({});
     setShowAddress(false);
@@ -635,7 +718,7 @@ export default function UsersContent() {
                   id="dateOfBirth"
                   name="dateOfBirth"
                   type="date"
-                  value={addUserFields.dateOfBirth.toISOString().split('T')[0]}
+                  value={addUserFields.dateOfBirth.toISOString().split("T")[0]}
                   onChange={handleAddUserChange}
                 />
                 {addUserFieldErrors.dateOfBirth && (
@@ -649,7 +732,7 @@ export default function UsersContent() {
                 <Input
                   id="referralCode"
                   name="referralCode"
-                  value={addUserFields.referralCode || ''}
+                  value={addUserFields.referralCode || ""}
                   onChange={handleAddUserChange}
                 />
               </div>
@@ -662,7 +745,12 @@ export default function UsersContent() {
                 className="flex items-center gap-1 text-blue-600"
                 onClick={() => setShowAddress(!showAddress)}
               >
-                Address {showAddress ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                Address{" "}
+                {showAddress ? (
+                  <ChevronUp size={16} />
+                ) : (
+                  <ChevronDown size={16} />
+                )}
               </button>
               {showAddress && (
                 <div className="grid grid-cols-2 gap-4 mt-2 bg-gray-50 p-4 rounded">
@@ -671,7 +759,7 @@ export default function UsersContent() {
                     <Input
                       id="address.line1"
                       name="address.line1"
-                      value={addUserFields.address?.line1 || ''}
+                      value={addUserFields.address?.line1 || ""}
                       onChange={handleAddUserChange}
                     />
                     {addUserFieldErrors["address.line1"] && (
@@ -685,7 +773,7 @@ export default function UsersContent() {
                     <Input
                       id="address.line2"
                       name="address.line2"
-                      value={addUserFields.address?.line2 || ''}
+                      value={addUserFields.address?.line2 || ""}
                       onChange={handleAddUserChange}
                     />
                   </div>
@@ -694,7 +782,7 @@ export default function UsersContent() {
                     <Input
                       id="address.city"
                       name="address.city"
-                      value={addUserFields.address?.city || ''}
+                      value={addUserFields.address?.city || ""}
                       onChange={handleAddUserChange}
                     />
                     {addUserFieldErrors["address.city"] && (
@@ -708,7 +796,7 @@ export default function UsersContent() {
                     <Input
                       id="address.pincode"
                       name="address.pincode"
-                      value={addUserFields.address?.pincode || ''}
+                      value={addUserFields.address?.pincode || ""}
                       onChange={handleAddUserChange}
                     />
                     {addUserFieldErrors["address.pincode"] && (
@@ -728,12 +816,19 @@ export default function UsersContent() {
                 className="flex items-center gap-1 text-blue-600"
                 onClick={() => setShowIdentity(!showIdentity)}
               >
-                Identity Details {showIdentity ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                Identity Details{" "}
+                {showIdentity ? (
+                  <ChevronUp size={16} />
+                ) : (
+                  <ChevronDown size={16} />
+                )}
               </button>
               {showIdentity && (
                 <div className="grid grid-cols-2 gap-4 mt-2 bg-gray-50 p-4 rounded">
                   <div>
-                    <Label htmlFor="identityDetails.panNumber">PAN Number*</Label>
+                    <Label htmlFor="identityDetails.panNumber">
+                      PAN Number*
+                    </Label>
                     <Input
                       id="identityDetails.panNumber"
                       name="identityDetails.panNumber"
@@ -749,7 +844,9 @@ export default function UsersContent() {
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="identityDetails.panAttachment">PAN Attachment*</Label>
+                    <Label htmlFor="identityDetails.panAttachment">
+                      PAN Attachment*
+                    </Label>
                     <Input
                       id="identityDetails.panAttachment"
                       name="identityDetails.panAttachment"
@@ -765,7 +862,9 @@ export default function UsersContent() {
                         <div className="h-2 bg-gray-200 rounded-full">
                           <div
                             className="h-2 bg-blue-500 rounded-full"
-                            style={{ width: `${fileUploadStates.panAttachment.progress}%` }}
+                            style={{
+                              width: `${fileUploadStates.panAttachment.progress}%`,
+                            }}
                           />
                         </div>
                         <div className="text-xs text-gray-500 mt-1">
@@ -792,11 +891,13 @@ export default function UsersContent() {
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="identityDetails.aadharNumber">Aadhaar Number*</Label>
+                    <Label htmlFor="identityDetails.aadharNumber">
+                      Aadhaar Number*
+                    </Label>
                     <Input
                       id="identityDetails.aadharNumber"
                       name="identityDetails.aadharNumber"
-                      value={addUserFields.identityDetails?.aadharNumber || ''}
+                      value={addUserFields.identityDetails?.aadharNumber || ""}
                       onChange={handleAddUserChange}
                     />
                     {addUserFieldErrors["identityDetails.aadharNumber"] && (
@@ -806,7 +907,9 @@ export default function UsersContent() {
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="identityDetails.aadharFront">Aadhaar Front*</Label>
+                    <Label htmlFor="identityDetails.aadharFront">
+                      Aadhaar Front*
+                    </Label>
                     <Input
                       id="identityDetails.aadharFront"
                       name="identityDetails.aadharFront"
@@ -822,7 +925,9 @@ export default function UsersContent() {
                         <div className="h-2 bg-gray-200 rounded-full">
                           <div
                             className="h-2 bg-blue-500 rounded-full"
-                            style={{ width: `${fileUploadStates.aadharFront.progress}%` }}
+                            style={{
+                              width: `${fileUploadStates.aadharFront.progress}%`,
+                            }}
                           />
                         </div>
                         <div className="text-xs text-gray-500 mt-1">
@@ -849,7 +954,9 @@ export default function UsersContent() {
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="identityDetails.aadharBack">Aadhaar Back*</Label>
+                    <Label htmlFor="identityDetails.aadharBack">
+                      Aadhaar Back*
+                    </Label>
                     <Input
                       id="identityDetails.aadharBack"
                       name="identityDetails.aadharBack"
@@ -865,7 +972,9 @@ export default function UsersContent() {
                         <div className="h-2 bg-gray-200 rounded-full">
                           <div
                             className="h-2 bg-blue-500 rounded-full"
-                            style={{ width: `${fileUploadStates.aadharBack.progress}%` }}
+                            style={{
+                              width: `${fileUploadStates.aadharBack.progress}%`,
+                            }}
                           />
                         </div>
                         <div className="text-xs text-gray-500 mt-1">
@@ -902,16 +1011,19 @@ export default function UsersContent() {
                 className="flex items-center gap-1 text-blue-600"
                 onClick={() => setShowBank(!showBank)}
               >
-                Bank Details {showBank ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                Bank Details{" "}
+                {showBank ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
               </button>
               {showBank && (
                 <div className="grid grid-cols-2 gap-4 mt-2 bg-gray-50 p-4 rounded">
                   <div>
-                    <Label htmlFor="bankDetails.accountNumber">Account Number*</Label>
+                    <Label htmlFor="bankDetails.accountNumber">
+                      Account Number*
+                    </Label>
                     <Input
                       id="bankDetails.accountNumber"
                       name="bankDetails.accountNumber"
-                      value={addUserFields.bankDetails?.accountNumber || ''}
+                      value={addUserFields.bankDetails?.accountNumber || ""}
                       onChange={handleAddUserChange}
                     />
                     {addUserFieldErrors["bankDetails.accountNumber"] && (
@@ -941,7 +1053,7 @@ export default function UsersContent() {
                     <Input
                       id="bankDetails.branchName"
                       name="bankDetails.branchName"
-                      value={addUserFields.bankDetails?.branchName || ''}
+                      value={addUserFields.bankDetails?.branchName || ""}
                       onChange={handleAddUserChange}
                     />
                     {addUserFieldErrors["bankDetails.branchName"] && (
@@ -951,10 +1063,12 @@ export default function UsersContent() {
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="bankDetails.proofAttachment">Proof Attachment*</Label>
+                    <Label htmlFor="bankDetails.proofAttachment">
+                      Proof Attachment*
+                    </Label>
                     <Input
                       id="bankDetails.proofAttachment"
-                      name="bankDetails.proofAttachment"
+                      name="bankDetails.bankProof"
                       type="file"
                       accept=".pdf,.jpg,.jpeg,.png"
                       onChange={handleAddUserChange}
@@ -967,7 +1081,9 @@ export default function UsersContent() {
                         <div className="h-2 bg-gray-200 rounded-full">
                           <div
                             className="h-2 bg-blue-500 rounded-full"
-                            style={{ width: `${fileUploadStates.bankProof.progress}%` }}
+                            style={{
+                              width: `${fileUploadStates.bankProof.progress}%`,
+                            }}
                           />
                         </div>
                         <div className="text-xs text-gray-500 mt-1">
@@ -1014,8 +1130,10 @@ export default function UsersContent() {
               className="bg-[#AACF45] hover:bg-[#9abe3a]"
               onClick={handleAddUser}
               disabled={
-                addUserLoading || 
-                Object.values(fileUploadStates).some(state => state.isUploading)
+                addUserLoading ||
+                Object.values(fileUploadStates).some(
+                  (state) => state.isUploading
+                )
               }
             >
               {addUserLoading ? (
