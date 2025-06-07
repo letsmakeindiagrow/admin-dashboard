@@ -251,7 +251,7 @@ export default function UsersContent() {
             ? null
             : addUserFields.referralCode,
       };
-      await axios.post(`/api/v1/admin/create-new-user`, payload, {
+      await axios.post(`/api/v1/admin/create-user`, payload, {
         withCredentials: true,
         headers: { "Content-Type": "application/json" },
       });
