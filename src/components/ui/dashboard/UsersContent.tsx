@@ -398,9 +398,10 @@ export default function UsersContent() {
       else if (!validatePAN(addUserFields.identityDetails.panNumber)) errors["identityDetails.panNumber"] = "PAN must be 10 characters (ABCDE1234F)";
       if (!addUserFields.identityDetails.aadharNumber.trim()) errors["identityDetails.aadharNumber"] = "Aadhar number is required";
       else if (!validateAadhar(addUserFields.identityDetails.aadharNumber)) errors["identityDetails.aadharNumber"] = "Aadhar number must be 12 digits";
-      if (!addUserFields.identityDetails.panAttachment) errors["identityDetails.panAttachment"] = "PAN Attachment is required";
-      if (!addUserFields.identityDetails.aadharFront) errors["identityDetails.aadharFront"] = "Aadhaar Front is required";
-      if (!addUserFields.identityDetails.aadharBack) errors["identityDetails.aadharBack"] = "Aadhaar Back is required";
+      // Check if files have been uploaded successfully by checking their URLs
+      if (!fileUploadStates.panAttachment.url) errors["identityDetails.panAttachment"] = "PAN Attachment is required";
+      if (!fileUploadStates.aadharFront.url) errors["identityDetails.aadharFront"] = "Aadhaar Front is required";
+      if (!fileUploadStates.aadharBack.url) errors["identityDetails.aadharBack"] = "Aadhaar Back is required";
     }
 
     // Bank validation
@@ -410,7 +411,8 @@ export default function UsersContent() {
       if (!addUserFields.bankDetails.ifscCode.trim()) errors["bankDetails.ifscCode"] = "IFSC Code is required";
       else if (!validateIFSC(addUserFields.bankDetails.ifscCode)) errors["bankDetails.ifscCode"] = "Invalid IFSC Code";
       if (!addUserFields.bankDetails.branchName.trim()) errors["bankDetails.branchName"] = "Branch name is required";
-      if (!addUserFields.bankDetails.proofAttachment) errors["bankDetails.proofAttachment"] = "Proof Attachment is required";
+      // Check if the file has been uploaded successfully by checking the URL
+      if (!fileUploadStates.bankProof.url) errors["bankDetails.proofAttachment"] = "Proof Attachment is required";
     }
 
     if (Object.keys(errors).length > 0) {
@@ -422,7 +424,22 @@ export default function UsersContent() {
     }
 
     try {
-      const response = await axios.post(`/api/v1/admin/create-user`, addUserFields, {
+      // Update form data with URLs from file upload states
+      const formDataToSubmit = {
+        ...addUserFields,
+        identityDetails: addUserFields.identityDetails ? {
+          ...addUserFields.identityDetails,
+          panAttachment: fileUploadStates.panAttachment.url,
+          aadharFront: fileUploadStates.aadharFront.url,
+          aadharBack: fileUploadStates.aadharBack.url,
+        } : undefined,
+        bankDetails: addUserFields.bankDetails ? {
+          ...addUserFields.bankDetails,
+          proofAttachment: fileUploadStates.bankProof.url,
+        } : undefined,
+      };
+
+      const response = await axios.post(`/api/v1/admin/create-user`, formDataToSubmit, {
         withCredentials: true,
       });
 
@@ -456,6 +473,13 @@ export default function UsersContent() {
             branchName: "",
             proofAttachment: "",
           },
+        });
+        // Reset file upload states
+        setFileUploadStates({
+          panAttachment: { isUploading: false, progress: 0, error: null, file: null, url: "" },
+          aadharFront: { isUploading: false, progress: 0, error: null, file: null, url: "" },
+          aadharBack: { isUploading: false, progress: 0, error: null, file: null, url: "" },
+          bankProof: { isUploading: false, progress: 0, error: null, file: null, url: "" },
         });
         fetchUsers();
       }
