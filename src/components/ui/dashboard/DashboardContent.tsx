@@ -27,19 +27,36 @@ import axios from "axios";
 function DocumentViewer({
   isOpen,
   onClose,
+  userId,
 }: {
   isOpen: boolean;
   onClose: () => void;
   userId: number;
 }) {
-  if (!isOpen) return null;
+  const [userDetails, setUserDetails] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
-  // Hardcoded AWS links for demo
-  const documents = {
-    panCard: "https://example-aws-link.com/pan-card.pdf",
-    aadharFront: "https://example-aws-link.com/aadhar-front.pdf",
-    aadharBack: "https://example-aws-link.com/aadhar-back.pdf",
-  };
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      if (!isOpen || !userId) return;
+      
+      setLoading(true);
+      try {
+        const response = await axios.get(`/api/v1/admin/get-user/${userId}`, {
+          withCredentials: true,
+        });
+        setUserDetails(response.data.user);
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserDetails();
+  }, [isOpen, userId]);
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-[9999]">
@@ -53,40 +70,71 @@ function DocumentViewer({
             ×
           </button>
         </div>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <h3 className="font-medium">PAN Card</h3>
-            <Button
-              variant="outline"
-              className="w-full justify-between"
-              onClick={() => window.open(documents.panCard, "_blank")}
-            >
-              View PAN Card
-              <ExternalLink className="h-4 w-4" />
-            </Button>
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#AACF45]"></div>
           </div>
-          <div className="space-y-2">
-            <h3 className="font-medium">Aadhar Card</h3>
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                variant="outline"
-                className="w-full justify-between"
-                onClick={() => window.open(documents.aadharFront, "_blank")}
-              >
-                Front Side
-                <ExternalLink className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full justify-between"
-                onClick={() => window.open(documents.aadharBack, "_blank")}
-              >
-                Back Side
-                <ExternalLink className="h-4 w-4" />
-              </Button>
+        ) : userDetails ? (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <h3 className="font-medium">PAN Card</h3>
+              <p className="text-sm text-gray-600 mb-2">{userDetails.identityDetails?.panNumber}</p>
+              {userDetails.identityDetails?.panAttachment && (
+                <Button
+                  variant="outline"
+                  className="w-full justify-between"
+                  onClick={() => window.open(userDetails.identityDetails.panAttachment, "_blank")}
+                >
+                  View PAN Card
+                  <ExternalLink className="h-4 w-4" />
+                </Button>
+              )}
             </div>
+            <div className="space-y-2">
+              <h3 className="font-medium">Aadhaar Card</h3>
+              <p className="text-sm text-gray-600 mb-2">{userDetails.identityDetails?.aadharNumber}</p>
+              <div className="grid grid-cols-2 gap-2">
+                {userDetails.identityDetails?.aadharFront && (
+                  <Button
+                    variant="outline"
+                    className="w-full justify-between"
+                    onClick={() => window.open(userDetails.identityDetails.aadharFront, "_blank")}
+                  >
+                    Front Side
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                )}
+                {userDetails.identityDetails?.aadharBack && (
+                  <Button
+                    variant="outline"
+                    className="w-full justify-between"
+                    onClick={() => window.open(userDetails.identityDetails.aadharBack, "_blank")}
+                  >
+                    Back Side
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
+            {userDetails.bankDetails?.proofAttachment && (
+              <div className="space-y-2">
+                <h3 className="font-medium">Bank Proof</h3>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between"
+                  onClick={() => window.open(userDetails.bankDetails.proofAttachment, "_blank")}
+                >
+                  View Bank Proof
+                  <ExternalLink className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </div>
-        </div>
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            No documents found
+          </div>
+        )}
       </div>
     </div>
   );
