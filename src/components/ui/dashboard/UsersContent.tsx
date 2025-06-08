@@ -273,17 +273,49 @@ export default function UsersContent() {
       // Set the URL in the form data as well
       setAddUserFields((prev) => {
         const newFields = { ...prev };
-        if (documentType === "panAttachment" && newFields.identityDetails) {
-          newFields.identityDetails.panAttachment = url;
-        } else if (
-          documentType === "aadharFront" &&
-          newFields.identityDetails
-        ) {
-          newFields.identityDetails.aadharFront = url;
-        } else if (documentType === "aadharBack" && newFields.identityDetails) {
-          newFields.identityDetails.aadharBack = url;
-        } else if (documentType === "bankProof" && newFields.bankDetails) {
-          newFields.bankDetails.proofAttachment = url;
+        if (documentType === "panAttachment") {
+          newFields.identityDetails = {
+            ...(newFields.identityDetails || {
+              panNumber: "",
+              panAttachment: "",
+              aadharNumber: "",
+              aadharFront: "",
+              aadharBack: "",
+            }),
+            panAttachment: url,
+          };
+        } else if (documentType === "aadharFront") {
+          newFields.identityDetails = {
+            ...(newFields.identityDetails || {
+              panNumber: "",
+              panAttachment: "",
+              aadharNumber: "",
+              aadharFront: "",
+              aadharBack: "",
+            }),
+            aadharFront: url,
+          };
+        } else if (documentType === "aadharBack") {
+          newFields.identityDetails = {
+            ...(newFields.identityDetails || {
+              panNumber: "",
+              panAttachment: "",
+              aadharNumber: "",
+              aadharFront: "",
+              aadharBack: "",
+            }),
+            aadharBack: url,
+          };
+        } else if (documentType === "bankProof") {
+          newFields.bankDetails = {
+            ...(newFields.bankDetails || {
+              accountNumber: "",
+              ifscCode: "",
+              branchName: "",
+              proofAttachment: "",
+            }),
+            proofAttachment: url,
+          };
         }
         return newFields;
       });
