@@ -6,6 +6,7 @@ import { CheckCircle, XCircle } from "lucide-react";
 import axios from "axios";
 import { useState } from "react";
 import UserDetailsModal from "./UserDetailsModal";
+import { formatCurrency } from "@/lib/utils";
 
 interface User {
   id: string;
@@ -89,7 +90,7 @@ export default function UserTableRow({ user, onVerify }: UserTableRowProps) {
         <TableCell className="w-[300px]">
           <p className="text-sm font-medium">{user.email}</p>
         </TableCell>
-        <TableCell>₹{user.availableBalance?.toLocaleString() || "0"}</TableCell>
+        <TableCell>{formatCurrency(user.availableBalance)}</TableCell>
         <TableCell>{formatDate(user.createdAt)}</TableCell>
         <TableCell>
           <div className="flex items-center gap-2">

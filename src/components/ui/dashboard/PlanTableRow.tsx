@@ -10,6 +10,7 @@ import { useState } from "react";
 import axios from "axios";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { formatCurrency, formatNumber } from "@/lib/utils";
 
 interface Plan {
   name: string;
@@ -142,9 +143,9 @@ export default function PlanTableRow({ plan, index, onDelete, onStatusChange }: 
     <>
       <TableRow>
         <TableCell className="font-medium">{plan.name}</TableCell>
-        <TableCell>{plan.roiAAR}%</TableCell>
-        <TableCell>{(plan.roiAMR / 12).toFixed(2)}%</TableCell>
-        <TableCell>₹{plan.minInvestment.toLocaleString()}</TableCell>
+        <TableCell>{formatNumber(plan.roiAAR)}%</TableCell>
+        <TableCell>{formatNumber(plan.roiAMR / 12)}%</TableCell>
+        <TableCell>{formatCurrency(plan.minInvestment)}</TableCell>
         <TableCell>{plan.investmentTerm}</TableCell>
         <TableCell>
           <Badge

@@ -23,6 +23,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useState, useEffect } from "react";
 import { ExternalLink } from "lucide-react";
 import axios from "axios";
+import { formatCurrency } from "@/lib/utils";
 
 function DocumentViewer({
   isOpen,
@@ -451,7 +452,7 @@ export default function DashboardContent() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Assets Under Management"
-          value={`₹${aum.toLocaleString()}`}
+          value={formatCurrency(aum)}
           change="+15% from last month"
           icon={DollarSign}
           iconColor="text-[#AACF45]"
@@ -465,7 +466,7 @@ export default function DashboardContent() {
         />
         <StatsCard
           title="Unused Funds"
-          value={`₹${unusedFunds.toLocaleString()}`}
+          value={formatCurrency(unusedFunds)}
           change="Available for investment"
           icon={CreditCard}
           iconColor="text-[#AACF45]"
@@ -673,7 +674,7 @@ export default function DashboardContent() {
                         <TableCell className="font-medium">
                           {transaction.user.email}
                         </TableCell>
-                        <TableCell>{transaction.creditAmount}</TableCell>
+                        <TableCell>{formatCurrency(transaction.creditAmount)}</TableCell>
                         <TableCell>{transaction.method}</TableCell>
                         <TableCell>{transaction.referenceNumber}</TableCell>
                         <TableCell>
@@ -743,7 +744,7 @@ export default function DashboardContent() {
                         <TableCell className="font-medium">
                           {transaction.user.email}
                         </TableCell>
-                        <TableCell>{transaction.debitAmount}</TableCell>
+                        <TableCell>{formatCurrency(transaction.debitAmount)}</TableCell>
                         <TableCell>
                           <Badge className="bg-yellow-100 text-yellow-800">
                             {transaction.status}

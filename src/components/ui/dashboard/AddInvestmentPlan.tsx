@@ -17,6 +17,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { formatCurrency, formatNumber } from "@/lib/utils";
 
 interface AddInvestmentPlanProps {
   onClose: () => void;
@@ -40,13 +41,13 @@ export default function AddInvestmentPlan({
     const investment = parseFloat(formData.minInvestment) || 0;
     const roi = parseFloat(formData.roiAAR) || 0;
     const term = parseFloat(formData.investmentTerm) || 0;
-    return ((investment * roi * term) / 100).toFixed(2);
+    return formatNumber((investment * roi * term) / 100);
   };
 
   const calculateMaturityValue = () => {
     const investment = parseFloat(formData.minInvestment) || 0;
     const totalGain = parseFloat(calculateTotalGain());
-    return (investment + totalGain).toFixed(2);
+    return formatNumber(investment + totalGain);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -98,7 +99,7 @@ export default function AddInvestmentPlan({
             <div className="space-y-2">
               <Label>ROI (AMR) %</Label>
               <Input
-                value={(parseFloat(formData.roiAAR) / 12).toFixed(2)}
+                value={formatNumber(parseFloat(formData.roiAAR) / 12)}
                 disabled
               />
             </div>
@@ -131,12 +132,12 @@ export default function AddInvestmentPlan({
 
             <div className="space-y-2">
               <Label>Total Gain (₹)</Label>
-              <Input value={calculateTotalGain()} disabled />
+              <Input value={formatCurrency(calculateTotalGain())} disabled />
             </div>
 
             <div className="space-y-2">
               <Label>Maturity Value (₹)</Label>
-              <Input value={calculateMaturityValue()} disabled />
+              <Input value={formatCurrency(calculateMaturityValue())} disabled />
             </div>
 
             <div className="space-y-2">
